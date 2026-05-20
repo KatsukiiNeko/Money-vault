@@ -12,8 +12,6 @@ Private by design. Encrypted locally. No cloud tracking. No data collection.
 ![PWA](https://img.shields.io/badge/PWA-Offline%20Ready-5A0FC8?style=for-the-badge\&logo=pwa\&logoColor=white)
 ![Encryption](https://img.shields.io/badge/Encryption-AES--GCM-success?style=for-the-badge\&logo=letsencrypt\&logoColor=white)
 ![IndexedDB](https://img.shields.io/badge/Storage-IndexedDB-orange?style=for-the-badge)
-![Privacy](https://img.shields.io/badge/Privacy-Local%20Only-red?style=for-the-badge\&logo=protonmail\&logoColor=white)
-
 </div>
 
 ---
