@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../db/db';
 import { getSessionKey, decryptTransactionFromStorage } from '../crypto/crypto';
+import { useCurrency } from '../context/CurrencyContext';
 
 const History = () => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { formatCurrency } = useCurrency();
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -38,13 +40,6 @@ const History = () => {
 
     fetchTransactions();
   }, []);
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);

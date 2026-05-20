@@ -455,6 +455,305 @@ body {
   border: 1px solid rgba(74, 222, 128, 0.3);
 }
 
+/* Header Controls */
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Currency Toggle */
+.currency-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--card-dark-2);
+  border: 1px solid var(--border-dark);
+  border-radius: 12px;
+  padding: 0.5rem 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.currency-toggle:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-glow);
+}
+
+.flag-option {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  opacity: 0.4;
+  transition: all 0.3s ease;
+}
+
+.flag-option.active {
+  opacity: 1;
+}
+
+.flag-icon {
+  width: 22px;
+  height: 16px;
+  border-radius: 2px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.currency-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  letter-spacing: 0.5px;
+}
+
+.toggle-divider {
+  color: var(--text-muted-dark);
+  font-size: 0.8rem;
+  margin: 0 0.1rem;
+}
+
+/* Password Manager */
+.password-manager {
+  background: var(--card-dark);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.password-manager-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 1.2rem 1.5rem;
+  background: transparent;
+  border: none;
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.password-manager-toggle:hover {
+  background: var(--card-dark-2);
+}
+
+.toggle-content {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.toggle-content svg {
+  color: var(--primary-light);
+}
+
+.chevron {
+  transition: transform 0.3s ease;
+  color: var(--text-muted-dark);
+}
+
+.chevron.expanded {
+  transform: rotate(180deg);
+}
+
+.password-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  padding: 0 1.5rem 1.5rem;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.password-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.password-field label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted-dark);
+  padding-left: 0.2rem;
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  background: var(--card-dark-2);
+  border: 1px solid var(--border-dark);
+  border-radius: 12px;
+  padding: 0 1rem;
+  transition: all 0.2s ease;
+}
+
+.input-wrapper:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+.input-wrapper svg {
+  color: var(--text-muted-dark);
+  flex-shrink: 0;
+}
+
+.input-wrapper input {
+  flex: 1;
+  padding: 0.9rem 0;
+  background: transparent;
+  border: none;
+  color: var(--text-dark);
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.input-wrapper input::placeholder {
+  color: rgba(136, 136, 160, 0.5);
+}
+
+.password-submit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: white;
+  border: none;
+  padding: 0.9rem;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(129, 77, 229, 0.2);
+  margin-top: 0.3rem;
+}
+
+.password-submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(129, 77, 229, 0.35);
+}
+
+.password-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.password-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  animation: slideDown 0.3s ease;
+}
+
+.password-alert.error {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+}
+
+.password-alert.success {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.1);
+  border: 1px solid rgba(74, 222, 128, 0.25);
+}
+
+/* Backup & Restore */
+.backup-restore {
+  background: var(--card-dark);
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.backup-restore h2 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: var(--text-dark);
+}
+
+.backup-restore-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.backup-button,
+.restore-button {
+  flex: 1;
+  padding: 0.9rem;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.backup-button {
+  background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+  color: #052e16;
+  box-shadow: 0 4px 15px rgba(74, 222, 128, 0.2);
+}
+
+.backup-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(74, 222, 128, 0.35);
+}
+
+.restore-button {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  color: #1e3a5f;
+  box-shadow: 0 4px 15px rgba(96, 165, 250, 0.2);
+}
+
+.restore-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(96, 165, 250, 0.35);
+}
+
+.backup-button:disabled,
+.restore-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.status-message {
+  margin-top: 1rem;
+  padding: 0.9rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  color: var(--text-muted-dark);
+  background: var(--card-dark-2);
+  border: 1px solid var(--border-dark);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .dashboard-content {
@@ -471,7 +770,16 @@ body {
     align-items: flex-start;
   }
 
+  .header-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
   .balance-summary {
     grid-template-columns: 1fr;
+  }
+
+  .backup-restore-buttons {
+    flex-direction: column;
   }
 }

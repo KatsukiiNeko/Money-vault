@@ -9,6 +9,7 @@ const PasswordManager = ({ onPasswordChange }) => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
@@ -101,55 +102,127 @@ const PasswordManager = ({ onPasswordChange }) => {
 
   return (
     <div className="password-manager">
-      <h2>Change Password</h2>
-      <form onSubmit={handleChangePassword}>
-        <div className="form-group">
-          <label htmlFor="currentPassword">Current Password:</label>
-          <input
-            type="password"
-            id="currentPassword"
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-            required
-            autoComplete="current-password"
-          />
+      <button
+        className="password-manager-toggle"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <div className="toggle-content">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <span>Change Password</span>
         </div>
-
-        <div className="form-group">
-          <label htmlFor="newPassword">New Password:</label>
-          <input
-            type="password"
-            id="newPassword"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            required
-            autoComplete="new-password"
-          />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="confirmPassword">Confirm New Password:</label>
-          <input
-            type="password"
-            id="confirmPassword"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-            autoComplete="new-password"
-          />
-        </div>
-
-        <button
-          type="submit"
-          className="change-password-button"
-          disabled={isLoading}
+        <svg
+          className={`chevron ${isExpanded ? 'expanded' : ''}`}
+          width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
         >
-          {isLoading ? 'Changing...' : 'Change Password'}
-        </button>
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
 
-        {error && <div className="error-message">{error}</div>}
-        {success && <div className="success-message">{success}</div>}
-      </form>
+      {isExpanded && (
+        <form onSubmit={handleChangePassword} className="password-form">
+          <div className="password-field">
+            <label htmlFor="currentPassword">Current Password</label>
+            <div className="input-wrapper">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+              <input
+                type="password"
+                id="currentPassword"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+                placeholder="Enter current password"
+              />
+            </div>
+          </div>
+
+          <div className="password-field">
+            <label htmlFor="newPassword">New Password</label>
+            <div className="input-wrapper">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+              <input
+                type="password"
+                id="newPassword"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+                autoComplete="new-password"
+                placeholder="Enter new password"
+              />
+            </div>
+          </div>
+
+          <div className="password-field">
+            <label htmlFor="confirmPassword">Confirm New Password</label>
+            <div className="input-wrapper">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <path d="M9 12l2 2 4-4"/>
+              </svg>
+              <input
+                type="password"
+                id="confirmPassword"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                autoComplete="new-password"
+                placeholder="Confirm new password"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            className="password-submit-btn"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <svg className="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 12a9 9 0 11-6.219-8.56"/>
+                </svg>
+                Re-encrypting...
+              </>
+            ) : (
+              <>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Update Password
+              </>
+            )}
+          </button>
+
+          {error && (
+            <div className="password-alert error">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="15" y1="9" x2="9" y2="15"/>
+                <line x1="9" y1="9" x2="15" y2="15"/>
+              </svg>
+              {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="password-alert success">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+              {success}
+            </div>
+          )}
+        </form>
+      )}
     </div>
   );
 };

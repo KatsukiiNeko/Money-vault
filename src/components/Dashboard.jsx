@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../db/db';
 import { getSessionKey, decryptTransactionFromStorage, encryptData, decryptData, generateIV } from '../crypto/crypto';
+import { useCurrency } from '../context/CurrencyContext';
 import TransactionForm from './TransactionForm';
 import History from './History';
 import Forecast from './Forecast';
 import BackupRestore from './BackupRestore';
 import PasswordManager from './PasswordManager';
+import CurrencyToggle from './CurrencyToggle';
 
 const Dashboard = ({ onLogout }) => {
   const [balance, setBalance] = useState({ income: 0, expenses: 0, balance: 0 });
   const [refreshKey, setRefreshKey] = useState(0);
+  const { formatCurrency } = useCurrency();
 
   useEffect(() => {
     const calculateBalance = async () => {
@@ -46,13 +49,6 @@ const Dashboard = ({ onLogout }) => {
 
     calculateBalance();
   }, [refreshKey]);
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
 
   const handleTransactionAdded = () => {
     setRefreshKey(k => k + 1);
@@ -144,9 +140,12 @@ const Dashboard = ({ onLogout }) => {
     <div className="dashboard">
       <div className="dashboard-header">
         <h1>Money Vault</h1>
-        <button onClick={onLogout} className="logout-button">
-          Lock
-        </button>
+        <div className="header-controls">
+          <CurrencyToggle />
+          <button onClick={onLogout} className="logout-button">
+            Lock
+          </button>
+        </div>
       </div>
 
       <div className="balance-summary">

@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { calculateForecast } from '../utils/forecast';
 import { db } from '../db/db';
 import { getSessionKey, decryptTransactionFromStorage } from '../crypto/crypto';
+import { useCurrency } from '../context/CurrencyContext';
 
 const Forecast = () => {
   const [forecastData, setForecastData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { formatCurrency } = useCurrency();
 
   useEffect(() => {
     const loadForecast = async () => {
@@ -52,15 +54,15 @@ const Forecast = () => {
       <div className="forecast-content">
         <div className="forecast-item">
           <span className="label">Current Balance:</span>
-          <span className="value">${forecastData.currentBalance.toFixed(2)}</span>
+          <span className="value">{formatCurrency(forecastData.currentBalance)}</span>
         </div>
         <div className="forecast-item">
           <span className="label">Projected End-of-Month Balance:</span>
-          <span className="value">${forecastData.projectedBalance.toFixed(2)}</span>
+          <span className="value">{formatCurrency(forecastData.projectedBalance)}</span>
         </div>
         <div className="forecast-item">
           <span className="label">Daily Average Spending:</span>
-          <span className="value">${forecastData.dailyAverage.toFixed(2)}/day</span>
+          <span className="value">{formatCurrency(forecastData.dailyAverage)}/day</span>
         </div>
         <div className="forecast-item">
           <span className="label">Days Remaining:</span>
