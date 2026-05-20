@@ -173,9 +173,11 @@ body {
 /* Dashboard */
 .dashboard {
   max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
   padding: 2rem;
   background: var(--bg-dark);
+  box-sizing: border-box;
 }
 
 .dashboard-header {
@@ -802,6 +804,12 @@ body {
 
 /* Responsive */
 @media (max-width: 768px) {
+  .dashboard {
+    padding: 1rem;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
   .dashboard-content {
     grid-template-columns: 1fr;
   }
@@ -825,7 +833,36 @@ body {
     grid-template-columns: 1fr;
   }
 
+  .balance-item .value {
+    font-size: 1.4rem;
+  }
+
+  .transaction-item {
+    flex-wrap: wrap;
+  }
+
+  .transaction-date {
+    min-width: auto;
+    font-size: 0.75rem;
+  }
+
+  .transaction-amount {
+    font-size: 0.95rem;
+  }
+
+  .transaction-left {
+    flex: 1 1 60%;
+  }
+
   .backup-restore-buttons {
     flex-direction: column;
+  }
+
+  .lock-screen-container {
+    padding: 1.5rem;
+  }
+
+  .lock-screen-container h1 {
+    font-size: 1.8rem;
   }
 }
