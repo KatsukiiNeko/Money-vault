@@ -1,106 +1,210 @@
 # Money Vault
 
-**Money Vault** is a secure, offline-first personal finance tracker built as a Progressive Web App (PWA). It keeps your financial data private and encrypted on your device, with no external data transmission.
+<div align="center">
 
-## Features
+# 🔐 Money Vault
 
-- **🔒 End-to-End Encryption**: All financial data is encrypted locally using Web Crypto API (AES-GCM)
-- **📱 Progressive Web App**: Installable on mobile devices, works completely offline
-- **📊 Financial Forecasting**: Projects month-end balance based on spending patterns
-- **🔐 Zero-Knowledge Security**: Your data never leaves your device
-- **🌙 Dark Theme Interface**: Modern, minimal design optimized for usability
+**A secure, offline-first personal finance vault built as a Progressive Web App (PWA).**
+Private by design. Encrypted locally. No cloud tracking. No data collection.
 
-## Security
+![License](https://img.shields.io/github/license/your-username/money-vault?style=for-the-badge)
+![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge\&logo=react\&logoColor=black)
+![Vite](https://img.shields.io/badge/Vite-7-646CFF?style=for-the-badge\&logo=vite\&logoColor=white)
+![PWA](https://img.shields.io/badge/PWA-Offline%20Ready-5A0FC8?style=for-the-badge\&logo=pwa\&logoColor=white)
+![Encryption](https://img.shields.io/badge/Encryption-AES--GCM-success?style=for-the-badge\&logo=letsencrypt\&logoColor=white)
+![IndexedDB](https://img.shields.io/badge/Storage-IndexedDB-orange?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge)
+![Privacy](https://img.shields.io/badge/Privacy-Local%20Only-red?style=for-the-badge\&logo=protonmail\&logoColor=white)
 
-- **PBKDF2 Key Derivation**: 200,000 iterations for strong password protection
-- **AES-GCM Encryption**: Military-grade encryption for all stored data
-- **Local-Only Storage**: Data never transmitted to external servers
-- **Client-Side Only**: All encryption/decryption happens in your browser
+</div>
 
-## Quick Start
+---
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/your-username/money-vault.git
-   cd money-vault
-   ```
+## ✨ Features
 
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+* 🔒 **End-to-End Encryption**
+  All financial data is encrypted locally using the Web Crypto API with AES-GCM.
 
-3. **Run development server:**
-   ```bash
-   npm run dev
-   ```
+* 📱 **Progressive Web App**
+  Fully installable on desktop and mobile devices with offline support.
 
-4. **Build for production:**
-   ```bash
-   npm run build
-   ```
+* 📊 **Financial Forecasting**
+  Predicts month-end balance based on your income and spending behavior.
 
-## Project Structure
+* 📴 **Offline First**
+  Works without internet access after installation.
 
-```
-money-vault/
-├── src/
-│   ├── components/     # React components (LockScreen, Dashboard, etc.)
-│   ├── crypto/        # Encryption/decryption utilities
-│   ├── db/            # Database layer (Dexie.js)
-│   └── utils/         # Utility functions (forecasting)
-├── public/            # Static assets and PWA manifest
-└── package.json      # Project configuration
-```
+* 🔐 **Zero-Knowledge Privacy**
+  Your data never leaves your device.
 
-## Tech Stack
+* 🌙 **Modern Dark UI**
+  Minimal, clean interface optimized for focus and readability.
 
-- **Frontend**: React + Vite
-- **Database**: Dexie.js (IndexedDB wrapper)
-- **Encryption**: Web Crypto API (PBKDF2 + AES-GCM)
-- **Styling**: CSS3 with modern layout
-- **Deployment**: Cloudflare Pages or GitHub Pages
+* ⚡ **Fast & Lightweight**
+  Built with Vite and optimized for instant loading.
 
-## Development
+* 🗂️ **Local Database Storage**
+  Uses IndexedDB through Dexie.js for structured local persistence.
+
+---
+
+## 🛡️ Security
+
+Money Vault is designed with privacy and security as core principles.
+
+| Feature            | Description                                       |
+| ------------------ | ------------------------------------------------- |
+| PBKDF2             | 200,000 iterations for secure key derivation      |
+| AES-GCM            | Modern authenticated encryption                   |
+| Local-Only Storage | No cloud sync or external database                |
+| Client-Side Crypto | Encryption/decryption happens entirely in-browser |
+| Zero Tracking      | No analytics, telemetry, or third-party trackers  |
+
+---
+
+## 🚀 Quick Start
+
+### 1. Clone Repository
 
 ```bash
-# Install dependencies
-npm install
+git clone https://github.com/your-username/money-vault.git
+cd money-vault
+```
 
-# Start development server
+### 2. Install Dependencies
+
+```bash
+npm install
+```
+
+### 3. Start Development Server
+
+```bash
+npm run dev
+```
+
+### 4. Build Production Version
+
+```bash
+npm run build
+```
+
+### 5. Preview Production Build
+
+```bash
+npm run preview
+```
+
+---
+
+## 📁 Project Structure
+
+```bash
+money-vault/
+├── public/                 # Static assets + PWA manifest
+├── src/
+│   ├── components/         # UI components
+│   ├── crypto/             # Encryption utilities
+│   ├── db/                 # IndexedDB layer (Dexie.js)
+│   ├── hooks/              # Custom React hooks
+│   ├── styles/             # Global styling
+│   ├── utils/              # Forecasting + helpers
+│   └── main.jsx
+├── package.json
+└── vite.config.js
+```
+
+---
+
+## 🧱 Tech Stack
+
+| Category   | Technology                      |
+| ---------- | ------------------------------- |
+| Frontend   | React + Vite                    |
+| Database   | Dexie.js + IndexedDB            |
+| Encryption | Web Crypto API                  |
+| Styling    | CSS3 / Modern Layout            |
+| PWA        | Service Workers + Manifest      |
+| Deployment | GitHub Pages / Cloudflare Pages |
+
+---
+
+## 📦 Scripts
+
+```bash
+# Development
 npm run dev
 
-# Build for production
+# Production build
 npm run build
 
 # Preview production build
 npm run preview
+
+# Lint project
+npm run lint
 ```
 
-## Deployment
+---
 
-### Cloudflare Pages
-1. Connect your GitHub repository to Cloudflare Pages
-2. Set build command: `npm run build`
-3. Set build output directory: `dist/`
+## 🌍 Deployment
 
 ### GitHub Pages
-1. Push to your GitHub repository
-2. Enable GitHub Pages in repository settings
-3. Set source to `/docs` folder or `gh-pages` branch
 
-## License
+1. Push project to GitHub
+2. Open repository settings
+3. Enable GitHub Pages
+4. Select:
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+   * `gh-pages` branch
+     or
+   * `/docs` folder
 
-## Contributing
+```bash
+npm run build
+```
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Open a pull request
+3. Set output directory:
 
-## Support
+```bash
+dist
+```
 
-For support, please open an issue on the GitHub repository.
+---
+
+## 🗺️ Roadmap
+
+* [ ] Multi-wallet support
+* [ ] CSV export/import
+* [ ] Budget goals
+* [ ] Charts & analytics
+* [ ] Recurring transactions
+* [ ] Biometric unlock support
+* [ ] Optional encrypted backup files
+
+---
+
+## 🤝 Contributing
+
+Pull requests, issues, and feature suggestions are welcome.
+
+```bash
+# Fork repository
+# Create feature branch
+git checkout -b feature/amazing-feature
+```
+
+---
+
+## 📄 License
+
+Licensed under the MIT License.
+See the `LICENSE` file for more information.
+
+---
+
+<div align="center">
+
+### 🔐 Privacy First • Offline First • User First
+
+</div>
