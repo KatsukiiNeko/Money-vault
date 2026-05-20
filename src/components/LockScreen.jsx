@@ -10,6 +10,7 @@ const LockScreen = ({ onUnlock }) => {
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [isLockedOut, setIsLockedOut] = useState(false);
   const [lockoutEndTime, setLockoutEndTime] = useState(null);
+  const [isUnlocking, setIsUnlocking] = useState(false);
   const passwordInputRef = useRef(null);
   const intervalRef = useRef(null);
   const { t } = useLanguage();
@@ -108,7 +109,8 @@ const LockScreen = ({ onUnlock }) => {
           await db.settings.delete('lockoutData').catch(() => {});
           setSessionKey(key);
           setPassword('');
-          onUnlock();
+          setIsUnlocking(true);
+          setTimeout(() => onUnlock(), 800);
         } else {
           const newFailedAttempts = failedAttempts + 1;
           setFailedAttempts(newFailedAttempts);
@@ -142,7 +144,8 @@ const LockScreen = ({ onUnlock }) => {
 
         setSessionKey(key);
         setPassword('');
-        onUnlock();
+        setIsUnlocking(true);
+        setTimeout(() => onUnlock(), 800);
       }
     } catch (error) {
       setError(t('lock.errors.unlockFailed'));
@@ -151,7 +154,7 @@ const LockScreen = ({ onUnlock }) => {
   };
 
   return (
-    <div className="lock-screen">
+    <div className={`lock-screen ${isUnlocking ? 'unlocking' : ''}`}>
       <div className="lock-screen-container">
         <div className="lock-screen-toggle">
           <LanguageToggle />
