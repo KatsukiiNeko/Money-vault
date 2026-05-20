@@ -7,13 +7,11 @@
 **A secure, offline-first personal finance vault built as a Progressive Web App (PWA).**
 Private by design. Encrypted locally. No cloud tracking. No data collection.
 
-![License](https://img.shields.io/github/license/your-username/money-vault?style=for-the-badge)
 ![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge\&logo=react\&logoColor=black)
 ![Vite](https://img.shields.io/badge/Vite-7-646CFF?style=for-the-badge\&logo=vite\&logoColor=white)
 ![PWA](https://img.shields.io/badge/PWA-Offline%20Ready-5A0FC8?style=for-the-badge\&logo=pwa\&logoColor=white)
 ![Encryption](https://img.shields.io/badge/Encryption-AES--GCM-success?style=for-the-badge\&logo=letsencrypt\&logoColor=white)
 ![IndexedDB](https://img.shields.io/badge/Storage-IndexedDB-orange?style=for-the-badge)
-![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge)
 ![Privacy](https://img.shields.io/badge/Privacy-Local%20Only-red?style=for-the-badge\&logo=protonmail\&logoColor=white)
 
 </div>
