@@ -1,12 +1,12 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { deriveKey, generateSalt, createVerificationToken, verifyPassword, setSessionKey } from '../crypto/crypto';
 import { db } from '../db/db';
 import { useLanguage } from '../context/LanguageContext';
+import LanguageToggle from './LanguageToggle';
 
 const LockScreen = ({ onUnlock }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [isSettingUp, setIsSettingUp] = useState(false);
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [isLockedOut, setIsLockedOut] = useState(false);
   const [lockoutEndTime, setLockoutEndTime] = useState(null);
@@ -14,7 +14,6 @@ const LockScreen = ({ onUnlock }) => {
   const intervalRef = useRef(null);
   const { t } = useLanguage();
 
-  // Check if a password has been set
   const checkIfPasswordSet = async () => {
     try {
       const setting = await db.settings.get('passwordSet');
@@ -24,7 +23,6 @@ const LockScreen = ({ onUnlock }) => {
     }
   };
 
-  // Check for existing lockout
   useEffect(() => {
     const checkLockoutStatus = async () => {
       try {
@@ -40,15 +38,12 @@ const LockScreen = ({ onUnlock }) => {
             await db.settings.delete('lockoutData');
           }
         }
-      } catch {
-        // No lockout data
-      }
+      } catch {}
     };
 
     checkLockoutStatus();
   }, []);
 
-  // Update lockout timer display
   useEffect(() => {
     if (isLockedOut && lockoutEndTime) {
       intervalRef.current = setInterval(() => {
@@ -90,7 +85,6 @@ const LockScreen = ({ onUnlock }) => {
       const passwordSet = await checkIfPasswordSet();
 
       if (passwordSet) {
-        // Unlock flow: verify password against stored token
         const salt = await db.settings.get('salt');
         if (!salt) {
           setError(t('lock.errors.corrupted'));
@@ -102,7 +96,6 @@ const LockScreen = ({ onUnlock }) => {
 
         let token = await db.settings.get('verificationToken');
         if (!token) {
-          // Migration: old data has no verification token — create one now
           const newToken = await createVerificationToken(key);
           await db.settings.put({ key: 'verificationToken', value: newToken });
           token = { value: newToken };
@@ -114,10 +107,9 @@ const LockScreen = ({ onUnlock }) => {
           setFailedAttempts(0);
           await db.settings.delete('lockoutData').catch(() => {});
           setSessionKey(key);
-          setPassword(''); // Clear password from state immediately
+          setPassword('');
           onUnlock();
         } else {
-          // Wrong password
           const newFailedAttempts = failedAttempts + 1;
           setFailedAttempts(newFailedAttempts);
 
@@ -140,7 +132,6 @@ const LockScreen = ({ onUnlock }) => {
           setPassword('');
         }
       } else {
-        // First-time setup
         const salt = generateSalt();
         await db.settings.put({ key: 'salt', value: Array.from(salt) });
 
@@ -150,7 +141,7 @@ const LockScreen = ({ onUnlock }) => {
         await db.settings.put({ key: 'passwordSet', value: true });
 
         setSessionKey(key);
-        setPassword(''); // Clear password from state immediately
+        setPassword('');
         onUnlock();
       }
     } catch (error) {
@@ -162,6 +153,9 @@ const LockScreen = ({ onUnlock }) => {
   return (
     <div className="lock-screen">
       <div className="lock-screen-container">
+        <div className="lock-screen-toggle">
+          <LanguageToggle />
+        </div>
         <h1>{t('lock.title')}</h1>
         <h2>{t('lock.subtitle')}</h2>
 
@@ -189,7 +183,7 @@ const LockScreen = ({ onUnlock }) => {
           )}
 
           <button type="submit" className="unlock-button" disabled={isLockedOut}>
-            {isSettingUp ? t('lock.setPassword') : t('lock.unlock')}
+            {t('lock.unlock')}
           </button>
         </form>
 

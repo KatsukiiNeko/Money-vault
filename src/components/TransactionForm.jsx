@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { db } from '../db/db';
 import { getSessionKey, encryptTransactionForStorage } from '../crypto/crypto';
 import { useLanguage } from '../context/LanguageContext';

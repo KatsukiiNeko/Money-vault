@@ -81,17 +81,26 @@ body {
   width: 100%;
   backdrop-filter: blur(10px);
   border: 1px solid var(--border-dark);
+  position: relative;
+}
+
+.lock-screen-toggle {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
 }
 
 .lock-screen-container h1 {
   color: var(--text-dark);
   font-size: 2.2rem;
   font-weight: 700;
-  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  user-select: none;
   background: linear-gradient(135deg, var(--primary-light), var(--primary));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  padding-top: 25px;
 }
 
 .lock-screen-container h2 {

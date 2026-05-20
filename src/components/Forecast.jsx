@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { calculateForecast } from '../utils/forecast';
 import { db } from '../db/db';
 import { getSessionKey, decryptTransactionFromStorage } from '../crypto/crypto';
@@ -26,9 +26,7 @@ const Forecast = () => {
           try {
             const tx = await decryptTransactionFromStorage(enc, key);
             transactions.push(tx);
-          } catch {
-            // Skip corrupted entries
-          }
+          } catch {}
         }
 
         const forecast = calculateForecast(transactions);

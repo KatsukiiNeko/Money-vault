@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { db } from '../db/db';
 import { getSessionKey, decryptTransactionFromStorage, encryptData, decryptData, generateIV } from '../crypto/crypto';
 import { useCurrency } from '../context/CurrencyContext';
@@ -35,9 +35,7 @@ const Dashboard = ({ onLogout }) => {
             } else {
               totalExpenses += tx.amount;
             }
-          } catch {
-            // Skip corrupted entries
-          }
+          } catch {}
         }
 
         setBalance({
@@ -45,9 +43,7 @@ const Dashboard = ({ onLogout }) => {
           expenses: totalExpenses,
           balance: totalIncome - totalExpenses
         });
-      } catch {
-        // Error calculating balance
-      }
+      } catch {}
     };
 
     calculateBalance();
@@ -61,18 +57,14 @@ const Dashboard = ({ onLogout }) => {
     const key = getSessionKey();
     if (!key) throw new Error(t('dashboard.sessionExpired'));
 
-    // Get all encrypted transactions as-is for backup
     const allEncrypted = await db.transactions.toArray();
 
-    // Re-encrypt with a backup-specific key derived from a backup password
-    // For simplicity, we back up the raw encrypted blobs with metadata
     const backupData = {
       transactions: allEncrypted,
       timestamp: new Date().toISOString(),
       version: 1
     };
 
-    // Encrypt the entire backup with the session key
     const iv = generateIV();
     const jsonString = JSON.stringify(backupData);
     const encrypted = await encryptData(jsonString, key, iv);
@@ -125,7 +117,6 @@ const Dashboard = ({ onLogout }) => {
             throw new Error(t('dashboard.invalidBackupData'));
           }
 
-          // Clear existing and restore
           await db.transactions.clear();
           await db.transactions.bulkAdd(backupData.transactions);
 

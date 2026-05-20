@@ -1,4 +1,3 @@
-import React from 'react';
 import { useCurrency } from '../context/CurrencyContext';
 
 const CurrencyToggle = () => {

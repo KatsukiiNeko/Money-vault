@@ -4,8 +4,6 @@ import './index.css'
 import App from './App.jsx'
 import { CurrencyProvider } from './context/CurrencyContext'
 import { LanguageProvider } from './context/LanguageContext'
-
-// Register service worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch(() => {});

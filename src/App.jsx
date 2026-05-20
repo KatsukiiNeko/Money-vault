@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import LockScreen from './components/LockScreen';
 import Dashboard from './components/Dashboard';
 import { clearSessionKey } from './crypto/crypto';

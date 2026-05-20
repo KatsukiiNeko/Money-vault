@@ -409,7 +409,6 @@ export const translations = {
   }
 };
 
-// Map stored English category values back to translation keys
 export const categoryValueToKey = {
   'Food & Dining': 'cat.foodDining',
   'Transportation': 'cat.transportation',

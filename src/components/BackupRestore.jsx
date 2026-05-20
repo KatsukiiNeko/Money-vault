@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 
 const BackupRestore = ({ onBackup, onRestore }) => {

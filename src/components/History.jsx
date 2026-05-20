@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { db } from '../db/db';
 import { getSessionKey, decryptTransactionFromStorage } from '../crypto/crypto';
 import { useCurrency } from '../context/CurrencyContext';
@@ -27,11 +27,9 @@ const History = () => {
         for (const enc of allEncrypted) {
           try {
             const tx = await decryptTransactionFromStorage(enc, key);
-            tx.id = enc.id; // preserve Dexie auto-increment id
+            tx.id = enc.id;
             decrypted.push(tx);
-          } catch {
-            // Skip corrupted entries
-          }
+          } catch {}
         }
         setTransactions(decrypted);
         setLoading(false);

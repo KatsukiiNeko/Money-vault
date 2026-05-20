@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { deriveKey, generateSalt, getSessionKey, setSessionKey, createVerificationToken, verifyPassword, encryptTransactionForStorage, decryptTransactionFromStorage } from '../crypto/crypto';
 import { db } from '../db/db';
 import { useLanguage } from '../context/LanguageContext';
@@ -36,7 +36,6 @@ const PasswordManager = ({ onPasswordChange }) => {
     try {
       setIsLoading(true);
 
-      // Verify current password
       const salt = await db.settings.get('salt');
       const token = await db.settings.get('verificationToken');
       if (!salt || !token) {
@@ -55,10 +54,8 @@ const PasswordManager = ({ onPasswordChange }) => {
         return;
       }
 
-      // Get all encrypted transactions with old key
       const allEncrypted = await db.transactions.toArray();
 
-      // Decrypt all transactions with old key
       const decryptedTransactions = [];
       for (const enc of allEncrypted) {
         try {
@@ -71,23 +68,19 @@ const PasswordManager = ({ onPasswordChange }) => {
         }
       }
 
-      // Generate new salt and derive new key
       const newSalt = generateSalt();
       const newKey = await deriveKey(newPassword, newSalt);
 
-      // Re-encrypt all transactions with new key
       await db.transactions.clear();
       for (const tx of decryptedTransactions) {
         const encrypted = await encryptTransactionForStorage(tx, newKey);
         await db.transactions.add(encrypted);
       }
 
-      // Store new salt and verification token
       await db.settings.put({ key: 'salt', value: Array.from(newSalt) });
       const newToken = await createVerificationToken(newKey);
       await db.settings.put({ key: 'verificationToken', value: newToken });
 
-      // Update session key
       setSessionKey(newKey);
 
       setSuccess(t('password.success.changed'));
