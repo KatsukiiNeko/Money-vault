@@ -3,11 +3,13 @@ import { calculateForecast } from '../utils/forecast';
 import { db } from '../db/db';
 import { getSessionKey, decryptTransactionFromStorage } from '../crypto/crypto';
 import { useCurrency } from '../context/CurrencyContext';
+import { useLanguage } from '../context/LanguageContext';
 
 const Forecast = () => {
   const [forecastData, setForecastData] = useState(null);
   const [loading, setLoading] = useState(true);
   const { formatCurrency } = useCurrency();
+  const { t } = useLanguage();
 
   useEffect(() => {
     const loadForecast = async () => {
@@ -41,32 +43,32 @@ const Forecast = () => {
   }, []);
 
   if (loading) {
-    return <div className="forecast">Loading forecast data...</div>;
+    return <div className="forecast">{t('forecast.loading')}</div>;
   }
 
   if (!forecastData) {
-    return <div className="forecast">No data available</div>;
+    return <div className="forecast">{t('forecast.noData')}</div>;
   }
 
   return (
     <div className="forecast-container">
-      <h2>Monthly Forecast</h2>
+      <h2>{t('forecast.title')}</h2>
       <div className="forecast-content">
         <div className="forecast-item">
-          <span className="label">Current Balance:</span>
+          <span className="label">{t('forecast.currentBalance')}</span>
           <span className="value">{formatCurrency(forecastData.currentBalance)}</span>
         </div>
         <div className="forecast-item">
-          <span className="label">Projected End-of-Month Balance:</span>
+          <span className="label">{t('forecast.projectedBalance')}</span>
           <span className="value">{formatCurrency(forecastData.projectedBalance)}</span>
         </div>
         <div className="forecast-item">
-          <span className="label">Daily Average Spending:</span>
-          <span className="value">{formatCurrency(forecastData.dailyAverage)}/day</span>
+          <span className="label">{t('forecast.dailyAverage')}</span>
+          <span className="value">{formatCurrency(forecastData.dailyAverage)}{t('forecast.perDay')}</span>
         </div>
         <div className="forecast-item">
-          <span className="label">Days Remaining:</span>
-          <span className="value">{forecastData.daysRemaining} days</span>
+          <span className="label">{t('forecast.daysRemaining')}</span>
+          <span className="value">{forecastData.daysRemaining} {t('forecast.days')}</span>
         </div>
       </div>
     </div>

@@ -8,11 +8,14 @@ import Forecast from './Forecast';
 import BackupRestore from './BackupRestore';
 import PasswordManager from './PasswordManager';
 import CurrencyToggle from './CurrencyToggle';
+import LanguageToggle from './LanguageToggle';
+import { useLanguage } from '../context/LanguageContext';
 
 const Dashboard = ({ onLogout }) => {
   const [balance, setBalance] = useState({ income: 0, expenses: 0, balance: 0 });
   const [refreshKey, setRefreshKey] = useState(0);
   const { formatCurrency } = useCurrency();
+  const { t } = useLanguage();
 
   useEffect(() => {
     const calculateBalance = async () => {
@@ -56,7 +59,7 @@ const Dashboard = ({ onLogout }) => {
 
   const handleBackup = async () => {
     const key = getSessionKey();
-    if (!key) throw new Error('Session expired');
+    if (!key) throw new Error(t('dashboard.sessionExpired'));
 
     // Get all encrypted transactions as-is for backup
     const allEncrypted = await db.transactions.toArray();
@@ -94,7 +97,7 @@ const Dashboard = ({ onLogout }) => {
 
   const handleRestore = async () => {
     const key = getSessionKey();
-    if (!key) throw new Error('Session expired');
+    if (!key) throw new Error(t('dashboard.sessionExpired'));
 
     return new Promise((resolve, reject) => {
       const input = document.createElement('input');
@@ -102,14 +105,14 @@ const Dashboard = ({ onLogout }) => {
       input.accept = '.json';
       input.onchange = async (e) => {
         const file = e.target.files[0];
-        if (!file) { reject(new Error('No file selected')); return; }
+        if (!file) { reject(new Error(t('dashboard.noFileSelected'))); return; }
 
         try {
           const text = await file.text();
           const backup = JSON.parse(text);
 
           if (!backup.iv || !backup.ciphertext) {
-            throw new Error('Invalid backup file format');
+            throw new Error(t('dashboard.invalidBackupFormat'));
           }
 
           const iv = new Uint8Array(backup.iv);
@@ -119,7 +122,7 @@ const Dashboard = ({ onLogout }) => {
           const backupData = JSON.parse(decrypted);
 
           if (!backupData.transactions || !Array.isArray(backupData.transactions)) {
-            throw new Error('Invalid backup data structure');
+            throw new Error(t('dashboard.invalidBackupData'));
           }
 
           // Clear existing and restore
@@ -129,7 +132,7 @@ const Dashboard = ({ onLogout }) => {
           setRefreshKey(k => k + 1);
           resolve();
         } catch (err) {
-          reject(new Error('Failed to restore: ' + err.message));
+          reject(new Error(t('dashboard.restoreFailed') + err.message));
         }
       };
       input.click();
@@ -139,26 +142,27 @@ const Dashboard = ({ onLogout }) => {
   return (
     <div className="dashboard">
       <div className="dashboard-header">
-        <h1>Money Vault</h1>
+        <h1>{t('dashboard.title')}</h1>
         <div className="header-controls">
+          <LanguageToggle />
           <CurrencyToggle />
           <button onClick={onLogout} className="logout-button">
-            Lock
+            {t('dashboard.lock')}
           </button>
         </div>
       </div>
 
       <div className="balance-summary">
         <div className="balance-item">
-          <span className="label">Total Balance</span>
+          <span className="label">{t('dashboard.totalBalance')}</span>
           <span className="value">{formatCurrency(balance.balance)}</span>
         </div>
         <div className="balance-item">
-          <span className="label">Income</span>
+          <span className="label">{t('dashboard.income')}</span>
           <span className="value income">{formatCurrency(balance.income)}</span>
         </div>
         <div className="balance-item">
-          <span className="label">Expenses</span>
+          <span className="label">{t('dashboard.expenses')}</span>
           <span className="value expense">{formatCurrency(balance.expenses)}</span>
         </div>
       </div>

@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 import { CurrencyProvider } from './context/CurrencyContext'
+import { LanguageProvider } from './context/LanguageContext'
 
 // Register service worker
 if ('serviceWorker' in navigator) {
@@ -13,8 +14,10 @@ if ('serviceWorker' in navigator) {
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <CurrencyProvider>
-      <App />
-    </CurrencyProvider>
+    <LanguageProvider>
+      <CurrencyProvider>
+        <App />
+      </CurrencyProvider>
+    </LanguageProvider>
   </StrictMode>,
 )

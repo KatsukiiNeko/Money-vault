@@ -1,35 +1,37 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 
 const BackupRestore = ({ onBackup, onRestore }) => {
   const [isBackingUp, setIsBackingUp] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
   const [status, setStatus] = useState('');
+  const { t } = useLanguage();
 
   const handleBackup = async () => {
     setIsBackingUp(true);
-    setStatus('Creating backup...');
+    setStatus(t('backup.creating'));
     try {
       await onBackup();
-      setStatus('Backup created successfully!');
+      setStatus(t('backup.success'));
     } catch (error) {
-      setStatus('Backup failed: ' + error.message);
+      setStatus(t('backup.failedPrefix') + error.message);
     } finally {
       setIsBackingUp(false);
     }
   };
 
   const handleRestore = async () => {
-    if (!window.confirm('Restoring will replace all current data. Continue?')) {
+    if (!window.confirm(t('backup.confirmRestore'))) {
       return;
     }
 
     setIsRestoring(true);
-    setStatus('Restore started...');
+    setStatus(t('backup.restoreStarted'));
     try {
       await onRestore();
-      setStatus('Restore completed successfully!');
+      setStatus(t('backup.restoreSuccess'));
     } catch (error) {
-      setStatus('Restore failed: ' + error.message);
+      setStatus(t('backup.failedRestorePrefix') + error.message);
     } finally {
       setIsRestoring(false);
     }
@@ -37,21 +39,21 @@ const BackupRestore = ({ onBackup, onRestore }) => {
 
   return (
     <div className="backup-restore">
-      <h2>Backup & Restore</h2>
+      <h2>{t('backup.title')}</h2>
       <div className="backup-restore-buttons">
         <button
           onClick={handleBackup}
           disabled={isBackingUp}
           className="backup-button"
         >
-          {isBackingUp ? 'Backing up...' : 'Backup Data'}
+          {isBackingUp ? t('backup.backupBtnLoading') : t('backup.backupBtn')}
         </button>
         <button
           onClick={handleRestore}
           disabled={isRestoring}
           className="restore-button"
         >
-          {isRestoring ? 'Restoring...' : 'Restore Data'}
+          {isRestoring ? t('backup.restoreBtnLoading') : t('backup.restoreBtn')}
         </button>
       </div>
       {status && <div className="status-message">{status}</div>}

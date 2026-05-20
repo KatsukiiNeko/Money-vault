@@ -2,19 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { db } from '../db/db';
 import { getSessionKey, decryptTransactionFromStorage } from '../crypto/crypto';
 import { useCurrency } from '../context/CurrencyContext';
+import { useLanguage } from '../context/LanguageContext';
+import { categoryValueToKey } from '../i18n/translations';
 
 const History = () => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const { formatCurrency } = useCurrency();
+  const { t, language } = useLanguage();
 
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
         const key = getSessionKey();
         if (!key) {
-          setError('Session expired. Please unlock again.');
+          setError(t('history.errors.sessionExpired'));
           setLoading(false);
           return;
         }
@@ -33,7 +36,7 @@ const History = () => {
         setTransactions(decrypted);
         setLoading(false);
       } catch {
-        setError('Failed to load transactions');
+        setError(t('history.errors.loadFailed'));
         setLoading(false);
       }
     };
@@ -43,7 +46,8 @@ const History = () => {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+    const locale = language === 'EN' ? 'en-US' : 'vi-VN';
+    return date.toLocaleDateString(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -51,7 +55,7 @@ const History = () => {
   };
 
   if (loading) {
-    return <div className="loading">Loading transactions...</div>;
+    return <div className="loading">{t('history.loading')}</div>;
   }
 
   if (error) {
@@ -60,11 +64,11 @@ const History = () => {
 
   return (
     <div className="transaction-history">
-      <h2>Transaction History</h2>
+      <h2>{t('history.title')}</h2>
 
       {transactions.length === 0 ? (
         <div className="no-transactions">
-          <p>No transactions found.</p>
+          <p>{t('history.empty')}</p>
         </div>
       ) : (
         <div className="transactions-list">
@@ -76,7 +80,7 @@ const History = () => {
                 </div>
                 <div className="transaction-info">
                   <div className="transaction-category">
-                    {transaction.category}
+                    {categoryValueToKey[transaction.category] ? t(`cat.${categoryValueToKey[transaction.category]}`) : transaction.category}
                   </div>
                   {transaction.note && (
                     <div className="transaction-note">

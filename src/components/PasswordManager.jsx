@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { deriveKey, generateSalt, getSessionKey, setSessionKey, createVerificationToken, verifyPassword, encryptTransactionForStorage, decryptTransactionFromStorage } from '../crypto/crypto';
 import { db } from '../db/db';
+import { useLanguage } from '../context/LanguageContext';
 
 const PasswordManager = ({ onPasswordChange }) => {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -10,6 +11,7 @@ const PasswordManager = ({ onPasswordChange }) => {
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const { t } = useLanguage();
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
@@ -17,17 +19,17 @@ const PasswordManager = ({ onPasswordChange }) => {
     setSuccess('');
 
     if (!currentPassword || !newPassword || !confirmPassword) {
-      setError('All fields are required');
+      setError(t('password.errors.required'));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError('New passwords do not match');
+      setError(t('password.errors.mismatch'));
       return;
     }
 
     if (newPassword.length < 4) {
-      setError('New password must be at least 4 characters');
+      setError(t('password.errors.tooShort'));
       return;
     }
 
@@ -38,7 +40,7 @@ const PasswordManager = ({ onPasswordChange }) => {
       const salt = await db.settings.get('salt');
       const token = await db.settings.get('verificationToken');
       if (!salt || !token) {
-        setError('No password has been set yet');
+        setError(t('password.errors.notSet'));
         setIsLoading(false);
         return;
       }
@@ -48,7 +50,7 @@ const PasswordManager = ({ onPasswordChange }) => {
       const isValid = await verifyPassword(oldKey, token.value);
 
       if (!isValid) {
-        setError('Current password is incorrect');
+        setError(t('password.errors.incorrect'));
         setIsLoading(false);
         return;
       }
@@ -63,7 +65,7 @@ const PasswordManager = ({ onPasswordChange }) => {
           const tx = await decryptTransactionFromStorage(enc, oldKey);
           decryptedTransactions.push(tx);
         } catch {
-          setError('Failed to decrypt some transactions. Aborting password change.');
+          setError(t('password.errors.decryptFailed'));
           setIsLoading(false);
           return;
         }
@@ -88,14 +90,14 @@ const PasswordManager = ({ onPasswordChange }) => {
       // Update session key
       setSessionKey(newKey);
 
-      setSuccess('Password changed successfully. All data re-encrypted.');
+      setSuccess(t('password.success.changed'));
       setIsLoading(false);
 
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (err) {
-      setError('Failed to change password: ' + err.message);
+      setError(t('password.errors.changeFailed') + err.message);
       setIsLoading(false);
     }
   };
@@ -111,7 +113,7 @@ const PasswordManager = ({ onPasswordChange }) => {
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
             <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
           </svg>
-          <span>Change Password</span>
+          <span>{t('password.toggleLabel')}</span>
         </div>
         <svg
           className={`chevron ${isExpanded ? 'expanded' : ''}`}
@@ -124,7 +126,7 @@ const PasswordManager = ({ onPasswordChange }) => {
       {isExpanded && (
         <form onSubmit={handleChangePassword} className="password-form">
           <div className="password-field">
-            <label htmlFor="currentPassword">Current Password</label>
+            <label htmlFor="currentPassword">{t('password.currentLabel')}</label>
             <div className="input-wrapper">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
@@ -137,13 +139,13 @@ const PasswordManager = ({ onPasswordChange }) => {
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 required
                 autoComplete="current-password"
-                placeholder="Enter current password"
+                placeholder={t('password.currentPlaceholder')}
               />
             </div>
           </div>
 
           <div className="password-field">
-            <label htmlFor="newPassword">New Password</label>
+            <label htmlFor="newPassword">{t('password.newLabel')}</label>
             <div className="input-wrapper">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -155,13 +157,13 @@ const PasswordManager = ({ onPasswordChange }) => {
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
                 autoComplete="new-password"
-                placeholder="Enter new password"
+                placeholder={t('password.newPlaceholder')}
               />
             </div>
           </div>
 
           <div className="password-field">
-            <label htmlFor="confirmPassword">Confirm New Password</label>
+            <label htmlFor="confirmPassword">{t('password.confirmLabel')}</label>
             <div className="input-wrapper">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -174,7 +176,7 @@ const PasswordManager = ({ onPasswordChange }) => {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 autoComplete="new-password"
-                placeholder="Confirm new password"
+                placeholder={t('password.confirmPlaceholder')}
               />
             </div>
           </div>
@@ -189,14 +191,14 @@ const PasswordManager = ({ onPasswordChange }) => {
                 <svg className="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M21 12a9 9 0 11-6.219-8.56"/>
                 </svg>
-                Re-encrypting...
+                {t('password.reEncrypting')}
               </>
             ) : (
               <>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>
-                Update Password
+                {t('password.update')}
               </>
             )}
           </button>

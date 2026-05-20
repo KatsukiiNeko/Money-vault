@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { db } from '../db/db';
 import { getSessionKey, encryptTransactionForStorage } from '../crypto/crypto';
+import { useLanguage } from '../context/LanguageContext';
 
 const TransactionForm = ({ onTransactionAdded }) => {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -10,38 +11,39 @@ const TransactionForm = ({ onTransactionAdded }) => {
   const [note, setNote] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const { t } = useLanguage();
 
   const categories = [
-    'Food & Dining',
-    'Transportation',
-    'Shopping',
-    'Entertainment',
-    'Bills & Utilities',
-    'Healthcare',
-    'Travel',
-    'Education',
-    'Gifts & Donations',
-    'Salary',
-    'Investment',
-    'Other Income'
+    { key: 'foodDining', value: 'Food & Dining' },
+    { key: 'transportation', value: 'Transportation' },
+    { key: 'shopping', value: 'Shopping' },
+    { key: 'entertainment', value: 'Entertainment' },
+    { key: 'billsUtilities', value: 'Bills & Utilities' },
+    { key: 'healthcare', value: 'Healthcare' },
+    { key: 'travel', value: 'Travel' },
+    { key: 'education', value: 'Education' },
+    { key: 'giftsDonations', value: 'Gifts & Donations' },
+    { key: 'salary', value: 'Salary' },
+    { key: 'investment', value: 'Investment' },
+    { key: 'otherIncome', value: 'Other Income' },
   ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
-      setError('Please enter a valid amount');
+      setError(t('form.errors.invalidAmount'));
       return;
     }
 
     if (!category) {
-      setError('Please select a category');
+      setError(t('form.errors.selectCategory'));
       return;
     }
 
     const key = getSessionKey();
     if (!key) {
-      setError('Session expired. Please unlock again.');
+      setError(t('form.errors.sessionExpired'));
       return;
     }
 
@@ -56,7 +58,7 @@ const TransactionForm = ({ onTransactionAdded }) => {
     try {
       const encrypted = await encryptTransactionForStorage(transaction, key);
       await db.transactions.add(encrypted);
-      setSuccess('Transaction added successfully!');
+      setSuccess(t('form.success.added'));
       setError('');
       setNote('');
       setAmount('');
@@ -65,17 +67,17 @@ const TransactionForm = ({ onTransactionAdded }) => {
         onTransactionAdded();
       }
     } catch (err) {
-      setError('Failed to add transaction. Please try again.');
+      setError(t('form.errors.addFailed'));
     }
   };
 
   return (
     <div className="transaction-form-container">
-      <h2>Add Transaction</h2>
+      <h2>{t('form.title')}</h2>
       <form onSubmit={handleSubmit} className="transaction-form">
         <div className="form-row">
           <div className="form-group">
-            <label htmlFor="date">Date:</label>
+            <label htmlFor="date">{t('form.date')}</label>
             <input
               type="date"
               id="date"
@@ -88,30 +90,30 @@ const TransactionForm = ({ onTransactionAdded }) => {
 
         <div className="form-row">
           <div className="form-group">
-            <label htmlFor="type">Type:</label>
+            <label htmlFor="type">{t('form.type')}</label>
             <select
               id="type"
               value={type}
               onChange={(e) => setType(e.target.value)}
             >
-              <option value="expense">Expense</option>
-              <option value="income">Income</option>
+              <option value="expense">{t('form.expense')}</option>
+              <option value="income">{t('form.income')}</option>
             </select>
           </div>
         </div>
 
         <div className="form-row">
           <div className="form-group">
-            <label htmlFor="category">Category:</label>
+            <label htmlFor="category">{t('form.category')}</label>
             <select
               id="category"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               required
             >
-              <option value="">Select a category</option>
+              <option value="">{t('form.selectCategory')}</option>
               {categories.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
+                <option key={cat.value} value={cat.value}>{t(`cat.${cat.key}`)}</option>
               ))}
             </select>
           </div>
@@ -119,7 +121,7 @@ const TransactionForm = ({ onTransactionAdded }) => {
 
         <div className="form-row">
           <div className="form-group">
-            <label htmlFor="amount">Amount:</label>
+            <label htmlFor="amount">{t('form.amount')}</label>
             <input
               type="number"
               id="amount"
@@ -134,13 +136,13 @@ const TransactionForm = ({ onTransactionAdded }) => {
 
         <div className="form-row">
           <div className="form-group">
-            <label htmlFor="note">Note:</label>
+            <label htmlFor="note">{t('form.note')}</label>
             <input
               type="text"
               id="note"
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="Optional note"
+              placeholder={t('form.notePlaceholder')}
               maxLength={500}
             />
           </div>
@@ -150,7 +152,7 @@ const TransactionForm = ({ onTransactionAdded }) => {
         {success && <div className="success-message">{success}</div>}
 
         <button type="submit" className="submit-button">
-          Add Transaction
+          {t('form.submit')}
         </button>
       </form>
     </div>

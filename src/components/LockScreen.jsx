@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { deriveKey, generateSalt, createVerificationToken, verifyPassword, setSessionKey } from '../crypto/crypto';
 import { db } from '../db/db';
+import { useLanguage } from '../context/LanguageContext';
 
 const LockScreen = ({ onUnlock }) => {
   const [password, setPassword] = useState('');
@@ -11,6 +12,7 @@ const LockScreen = ({ onUnlock }) => {
   const [lockoutEndTime, setLockoutEndTime] = useState(null);
   const passwordInputRef = useRef(null);
   const intervalRef = useRef(null);
+  const { t } = useLanguage();
 
   // Check if a password has been set
   const checkIfPasswordSet = async () => {
@@ -70,17 +72,17 @@ const LockScreen = ({ onUnlock }) => {
     e.preventDefault();
 
     if (isLockedOut) {
-      setError('Account is temporarily locked. Please try again later.');
+      setError(t('lock.errors.locked'));
       return;
     }
 
     if (!password) {
-      setError('Please enter a password');
+      setError(t('lock.errors.emptyPassword'));
       return;
     }
 
     if (password.length < 4) {
-      setError('Password must be at least 4 characters');
+      setError(t('lock.errors.tooShort'));
       return;
     }
 
@@ -91,7 +93,7 @@ const LockScreen = ({ onUnlock }) => {
         // Unlock flow: verify password against stored token
         const salt = await db.settings.get('salt');
         if (!salt) {
-          setError('Corrupted data. Please reset the app.');
+          setError(t('lock.errors.corrupted'));
           return;
         }
 
@@ -127,9 +129,9 @@ const LockScreen = ({ onUnlock }) => {
               key: 'lockoutData',
               value: { endTime, failedAttempts: newFailedAttempts }
             }).catch(() => {});
-            setError('Too many failed attempts. Locked for 30 seconds.');
+            setError(t('lock.errors.tooManyAttempts'));
           } else {
-            setError('Invalid password');
+            setError(t('lock.errors.invalid'));
             await db.settings.put({
               key: 'lockoutData',
               value: { endTime: 0, failedAttempts: newFailedAttempts }
@@ -152,7 +154,7 @@ const LockScreen = ({ onUnlock }) => {
         onUnlock();
       }
     } catch (error) {
-      setError('Failed to unlock. Please try again.');
+      setError(t('lock.errors.unlockFailed'));
       setPassword('');
     }
   };
@@ -160,19 +162,19 @@ const LockScreen = ({ onUnlock }) => {
   return (
     <div className="lock-screen">
       <div className="lock-screen-container">
-        <h1>Money Vault</h1>
-        <h2>Secure Personal Finance Tracker</h2>
+        <h1>{t('lock.title')}</h1>
+        <h2>{t('lock.subtitle')}</h2>
 
         <form onSubmit={handleUnlock} className="lock-screen-form">
           <div className="password-input-container">
-            <label htmlFor="password">Enter Password:</label>
+            <label htmlFor="password">{t('lock.enterPassword')}</label>
             <input
               type="password"
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               ref={passwordInputRef}
-              placeholder="Enter your PIN or password"
+              placeholder={t('lock.passwordPlaceholder')}
               disabled={isLockedOut}
               autoComplete="current-password"
             />
@@ -182,18 +184,18 @@ const LockScreen = ({ onUnlock }) => {
 
           {isLockedOut && (
             <div className="lockout-timer">
-              Account locked. Try again in: {Math.ceil((lockoutEndTime - new Date().getTime()) / 1000)}s
+              {t('lock.lockoutTimer', { seconds: Math.ceil((lockoutEndTime - new Date().getTime()) / 1000) })}
             </div>
           )}
 
           <button type="submit" className="unlock-button" disabled={isLockedOut}>
-            {isSettingUp ? 'Set Password' : 'Unlock'}
+            {isSettingUp ? t('lock.setPassword') : t('lock.unlock')}
           </button>
         </form>
 
         <div className="app-info">
-          <p>Your financial data is encrypted and stored locally on your device.</p>
-          <p>No data is sent to any server.</p>
+          <p>{t('lock.info.encrypted')}</p>
+          <p>{t('lock.info.noServer')}</p>
         </div>
       </div>
     </div>
