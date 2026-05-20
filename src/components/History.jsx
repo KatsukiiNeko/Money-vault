@@ -70,24 +70,24 @@ const History = () => {
         <div className="transactions-list">
           {transactions.map((transaction) => (
             <div key={transaction.id} className="transaction-item">
-              <div className="transaction-date">
-                {formatDate(transaction.date)}
-              </div>
-              <div className="transaction-details">
-                <div className="transaction-amount">
-                  <span className={`amount ${transaction.type}`}>
-                    {transaction.type === 'expense' ? '-' : '+'}
-                    {formatCurrency(transaction.amount)}
-                  </span>
+              <div className="transaction-left">
+                <div className="transaction-date">
+                  {formatDate(transaction.date)}
                 </div>
-                <div className="transaction-category">
-                  {transaction.category}
-                </div>
-                {transaction.note && (
-                  <div className="transaction-note">
-                    {transaction.note}
+                <div className="transaction-info">
+                  <div className="transaction-category">
+                    {transaction.category}
                   </div>
-                )}
+                  {transaction.note && (
+                    <div className="transaction-note">
+                      {transaction.note}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className={`transaction-amount ${transaction.type}`}>
+                {transaction.type === 'expense' ? '-' : '+'}
+                {formatCurrency(transaction.amount)}
               </div>
             </div>
           ))}
