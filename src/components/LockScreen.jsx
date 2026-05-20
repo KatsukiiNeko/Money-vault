@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { deriveKey, generateSalt } from '../crypto/crypto';
+import { deriveKey, generateSalt, createVerificationToken, verifyPassword, setSessionKey } from '../crypto/crypto';
 import { db } from '../db/db';
 
 const LockScreen = ({ onUnlock }) => {
@@ -18,7 +18,6 @@ const LockScreen = ({ onUnlock }) => {
       const setting = await db.settings.get('passwordSet');
       return !!setting;
     } catch (error) {
-      console.error('Error checking password status:', error);
       return false;
     }
   };
@@ -36,12 +35,11 @@ const LockScreen = ({ onUnlock }) => {
             setLockoutEndTime(endTime);
             setFailedAttempts(failedAttempts || 0);
           } else {
-            // Clear expired lockout
             await db.settings.delete('lockoutData');
           }
         }
-      } catch (error) {
-        console.log('No existing lockout data');
+      } catch {
+        // No lockout data
       }
     };
 
@@ -56,8 +54,7 @@ const LockScreen = ({ onUnlock }) => {
         if (now >= lockoutEndTime) {
           setIsLockedOut(false);
           setLockoutEndTime(null);
-          // Clear lockout data
-          db.settings.delete('lockoutData').catch(e => console.log('Error clearing lockout data:', e));
+          db.settings.delete('lockoutData').catch(() => {});
         }
       }, 1000);
     }
@@ -82,93 +79,81 @@ const LockScreen = ({ onUnlock }) => {
       return;
     }
 
-    // Validate password strength
     if (password.length < 4) {
-      setError('Password must be at least 4 characters long');
-      return;
-    }
-
-    // Check for password complexity (at least one letter and one number)
-    const hasLetter = /[a-zA-Z]/.test(password);
-    const hasNumber = /[0-9]/.test(password);
-    if (!hasLetter || !hasNumber) {
-      setError('Password must contain at least one letter and one number');
+      setError('Password must be at least 4 characters');
       return;
     }
 
     try {
-      // Check if password is already set
       const passwordSet = await checkIfPasswordSet();
 
       if (passwordSet) {
-        // Try to unlock with the provided password
+        // Unlock flow: verify password against stored token
         const salt = await db.settings.get('salt');
         if (!salt) {
-          setError('No password has been set yet');
+          setError('Corrupted data. Please reset the app.');
           return;
         }
 
-        try {
-          // Try to derive key to verify password
-          const saltArray = new Uint8Array(Object.values(salt.value));
-          await deriveKey(password, saltArray);
-          // If we get here, the password is correct
-          // Reset failed attempts on successful login
+        const saltArray = new Uint8Array(Object.values(salt.value));
+        const key = await deriveKey(password, saltArray);
+
+        let token = await db.settings.get('verificationToken');
+        if (!token) {
+          // Migration: old data has no verification token — create one now
+          const newToken = await createVerificationToken(key);
+          await db.settings.put({ key: 'verificationToken', value: newToken });
+          token = { value: newToken };
+        }
+
+        const isValid = await verifyPassword(key, token.value);
+
+        if (isValid) {
           setFailedAttempts(0);
-          await db.settings.delete('lockoutData').catch(e => console.log('Error clearing lockout data:', e));
-          onUnlock(password);
-        } catch (error) {
-          // Increment failed attempts
+          await db.settings.delete('lockoutData').catch(() => {});
+          setSessionKey(key);
+          setPassword(''); // Clear password from state immediately
+          onUnlock();
+        } else {
+          // Wrong password
           const newFailedAttempts = failedAttempts + 1;
           setFailedAttempts(newFailedAttempts);
 
-          // Lockout after 3 failed attempts for 30 seconds
-          if (newFailedAttempts >= 3) {
-            const lockoutEndTime = new Date().getTime() + 30000; // 30 seconds
+          if (newFailedAttempts >= 5) {
+            const endTime = new Date().getTime() + 30000;
             setIsLockedOut(true);
-            setLockoutEndTime(lockoutEndTime);
-
-            // Store lockout data
+            setLockoutEndTime(endTime);
             await db.settings.put({
               key: 'lockoutData',
-              value: {
-                endTime: lockoutEndTime,
-                failedAttempts: newFailedAttempts
-              }
-            }).catch(e => console.log('Error storing lockout data:', e));
-
-            setError('Too many failed attempts. Account locked for 30 seconds.');
+              value: { endTime, failedAttempts: newFailedAttempts }
+            }).catch(() => {});
+            setError('Too many failed attempts. Locked for 30 seconds.');
           } else {
             setError('Invalid password');
-            // Store failed attempts
             await db.settings.put({
               key: 'lockoutData',
-              value: {
-                endTime: 0,
-                failedAttempts: newFailedAttempts
-              }
-            }).catch(e => console.log('Error storing attempt data:', e));
+              value: { endTime: 0, failedAttempts: newFailedAttempts }
+            }).catch(() => {});
           }
+          setPassword('');
         }
       } else {
-        // Setting up a new password
-        setIsSettingUp(true);
+        // First-time setup
         const salt = generateSalt();
-
-        // Store the salt for future password verification
         await db.settings.put({ key: 'salt', value: Array.from(salt) });
 
-        // Mark that a password has been set
+        const key = await deriveKey(password, salt);
+        const token = await createVerificationToken(key);
+        await db.settings.put({ key: 'verificationToken', value: token });
         await db.settings.put({ key: 'passwordSet', value: true });
 
-        // Derive the key and store it
-        await deriveKey(password, salt);
-
-        onUnlock(password);
+        setSessionKey(key);
+        setPassword(''); // Clear password from state immediately
+        onUnlock();
       }
     } catch (error) {
-      console.error('Error unlocking:', error);
       setError('Failed to unlock. Please try again.');
+      setPassword('');
     }
   };
 
@@ -187,8 +172,9 @@ const LockScreen = ({ onUnlock }) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               ref={passwordInputRef}
-              placeholder="Enter your password"
+              placeholder="Enter your PIN or password"
               disabled={isLockedOut}
+              autoComplete="current-password"
             />
           </div>
 

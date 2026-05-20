@@ -1,36 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import LockScreen from './components/LockScreen';
 import Dashboard from './components/Dashboard';
-import { db } from './db/db';
+import { clearSessionKey } from './crypto/crypto';
 
 function App() {
   const [isLocked, setIsLocked] = useState(true);
-  const [password, setPassword] = useState('');
 
-  // Check if there's already a password set
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      try {
-        // Try to check if a password is already set
-        await db.settings.toArray();
-        // If we get here without error, we're just checking status
-        // We'll implement this properly in a real app
-      } catch (error) {
-        console.log("Error checking auth status:", error);
-      }
-    };
-
-    checkAuthStatus();
-  }, []);
-
-  const handleUnlock = (userPassword) => {
+  const handleUnlock = () => {
     setIsLocked(false);
-    setPassword(userPassword);
   };
 
   const handleLogout = () => {
+    clearSessionKey();
     setIsLocked(true);
-    setPassword('');
   };
 
   return (

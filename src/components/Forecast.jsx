@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { calculateForecast } from '../utils/forecast';
 import { db } from '../db/db';
+import { getSessionKey, decryptTransactionFromStorage } from '../crypto/crypto';
 
 const Forecast = () => {
   const [forecastData, setForecastData] = useState(null);
@@ -9,15 +10,27 @@ const Forecast = () => {
   useEffect(() => {
     const loadForecast = async () => {
       try {
-        // Get all transactions
-        const transactions = await db.transactions.toArray();
+        const key = getSessionKey();
+        if (!key) {
+          setLoading(false);
+          return;
+        }
 
-        // Calculate forecast data
+        const allEncrypted = await db.transactions.toArray();
+        const transactions = [];
+        for (const enc of allEncrypted) {
+          try {
+            const tx = await decryptTransactionFromStorage(enc, key);
+            transactions.push(tx);
+          } catch {
+            // Skip corrupted entries
+          }
+        }
+
         const forecast = calculateForecast(transactions);
         setForecastData(forecast);
         setLoading(false);
-      } catch (error) {
-        console.error('Error loading transactions:', error);
+      } catch {
         setLoading(false);
       }
     };
@@ -30,7 +43,7 @@ const Forecast = () => {
   }
 
   if (!forecastData) {
-    return <div className="forecast">Loading...</div>;
+    return <div className="forecast">No data available</div>;
   }
 
   return (

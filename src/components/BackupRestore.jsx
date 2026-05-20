@@ -19,6 +19,10 @@ const BackupRestore = ({ onBackup, onRestore }) => {
   };
 
   const handleRestore = async () => {
+    if (!window.confirm('Restoring will replace all current data. Continue?')) {
+      return;
+    }
+
     setIsRestoring(true);
     setStatus('Restore started...');
     try {

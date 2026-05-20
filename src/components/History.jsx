@@ -1,20 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../db/db';
+import { getSessionKey, decryptTransactionFromStorage } from '../crypto/crypto';
 
 const History = () => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Fetch transactions from the database
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
-        const allTransactions = await db.transactions.toArray();
-        setTransactions(allTransactions);
+        const key = getSessionKey();
+        if (!key) {
+          setError('Session expired. Please unlock again.');
+          setLoading(false);
+          return;
+        }
+
+        const allEncrypted = await db.transactions.toArray();
+        const decrypted = [];
+        for (const enc of allEncrypted) {
+          try {
+            const tx = await decryptTransactionFromStorage(enc, key);
+            tx.id = enc.id; // preserve Dexie auto-increment id
+            decrypted.push(tx);
+          } catch {
+            // Skip corrupted entries
+          }
+        }
+        setTransactions(decrypted);
         setLoading(false);
-      } catch (error) {
-        console.error('Error fetching transactions:', error);
+      } catch {
         setError('Failed to load transactions');
         setLoading(false);
       }
@@ -23,7 +39,6 @@ const History = () => {
     fetchTransactions();
   }, []);
 
-  // Format currency
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -31,7 +46,6 @@ const History = () => {
     }).format(amount);
   };
 
-  // Format date
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {

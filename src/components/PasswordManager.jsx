@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { deriveKey, generateSalt } from '../crypto/crypto';
+import { deriveKey, generateSalt, getSessionKey, setSessionKey, createVerificationToken, verifyPassword, encryptTransactionForStorage, decryptTransactionFromStorage } from '../crypto/crypto';
 import { db } from '../db/db';
 
 const PasswordManager = ({ onPasswordChange }) => {
@@ -15,7 +15,6 @@ const PasswordManager = ({ onPasswordChange }) => {
     setError('');
     setSuccess('');
 
-    // Validate passwords
     if (!currentPassword || !newPassword || !confirmPassword) {
       setError('All fields are required');
       return;
@@ -26,16 +25,8 @@ const PasswordManager = ({ onPasswordChange }) => {
       return;
     }
 
-    // Validate new password strength
     if (newPassword.length < 4) {
-      setError('New password must be at least 4 characters long');
-      return;
-    }
-
-    const hasLetter = /[a-zA-Z]/.test(newPassword);
-    const hasNumber = /[0-9]/.test(newPassword);
-    if (!hasLetter || !hasNumber) {
-      setError('New password must contain at least one letter and one number');
+      setError('New password must be at least 4 characters');
       return;
     }
 
@@ -44,36 +35,66 @@ const PasswordManager = ({ onPasswordChange }) => {
 
       // Verify current password
       const salt = await db.settings.get('salt');
-      if (!salt) {
+      const token = await db.settings.get('verificationToken');
+      if (!salt || !token) {
         setError('No password has been set yet');
+        setIsLoading(false);
         return;
       }
 
       const saltArray = new Uint8Array(Object.values(salt.value));
-      try {
-        await deriveKey(currentPassword, saltArray);
-      } catch (error) {
+      const oldKey = await deriveKey(currentPassword, saltArray);
+      const isValid = await verifyPassword(oldKey, token.value);
+
+      if (!isValid) {
         setError('Current password is incorrect');
         setIsLoading(false);
         return;
       }
 
-      // Update password
+      // Get all encrypted transactions with old key
+      const allEncrypted = await db.transactions.toArray();
+
+      // Decrypt all transactions with old key
+      const decryptedTransactions = [];
+      for (const enc of allEncrypted) {
+        try {
+          const tx = await decryptTransactionFromStorage(enc, oldKey);
+          decryptedTransactions.push(tx);
+        } catch {
+          setError('Failed to decrypt some transactions. Aborting password change.');
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // Generate new salt and derive new key
       const newSalt = generateSalt();
+      const newKey = await deriveKey(newPassword, newSalt);
+
+      // Re-encrypt all transactions with new key
+      await db.transactions.clear();
+      for (const tx of decryptedTransactions) {
+        const encrypted = await encryptTransactionForStorage(tx, newKey);
+        await db.transactions.add(encrypted);
+      }
+
+      // Store new salt and verification token
       await db.settings.put({ key: 'salt', value: Array.from(newSalt) });
+      const newToken = await createVerificationToken(newKey);
+      await db.settings.put({ key: 'verificationToken', value: newToken });
 
-      // Update password status
-      await db.settings.put({ key: 'passwordSet', value: true });
+      // Update session key
+      setSessionKey(newKey);
 
-      setSuccess('Password changed successfully');
+      setSuccess('Password changed successfully. All data re-encrypted.');
       setIsLoading(false);
 
-      // Clear form
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-    } catch (error) {
-      setError('Failed to change password: ' + error.message);
+    } catch (err) {
+      setError('Failed to change password: ' + err.message);
       setIsLoading(false);
     }
   };
@@ -90,6 +111,7 @@ const PasswordManager = ({ onPasswordChange }) => {
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
             required
+            autoComplete="current-password"
           />
         </div>
 
@@ -101,6 +123,7 @@ const PasswordManager = ({ onPasswordChange }) => {
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             required
+            autoComplete="new-password"
           />
         </div>
 
@@ -112,6 +135,7 @@ const PasswordManager = ({ onPasswordChange }) => {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
+            autoComplete="new-password"
           />
         </div>
 

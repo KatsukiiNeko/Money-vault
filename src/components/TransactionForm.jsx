@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { db } from '../db/db';
-import { encryptTransaction } from '../crypto/crypto';
+import { getSessionKey, encryptTransactionForStorage } from '../crypto/crypto';
 
 const TransactionForm = ({ onTransactionAdded }) => {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -29,7 +29,6 @@ const TransactionForm = ({ onTransactionAdded }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate input
     if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
       setError('Please enter a valid amount');
       return;
@@ -40,7 +39,12 @@ const TransactionForm = ({ onTransactionAdded }) => {
       return;
     }
 
-    // Create transaction object
+    const key = getSessionKey();
+    if (!key) {
+      setError('Session expired. Please unlock again.');
+      return;
+    }
+
     const transaction = {
       date: date,
       type: type,
@@ -50,21 +54,17 @@ const TransactionForm = ({ onTransactionAdded }) => {
     };
 
     try {
-      // Save to database
-      await db.transactions.add(transaction);
+      const encrypted = await encryptTransactionForStorage(transaction, key);
+      await db.transactions.add(encrypted);
       setSuccess('Transaction added successfully!');
       setError('');
-
-      // Clear form
       setNote('');
       setAmount('');
 
-      // Notify parent component
       if (onTransactionAdded) {
         onTransactionAdded();
       }
-    } catch (error) {
-      console.error('Error adding transaction:', error);
+    } catch (err) {
       setError('Failed to add transaction. Please try again.');
     }
   };
@@ -141,6 +141,7 @@ const TransactionForm = ({ onTransactionAdded }) => {
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="Optional note"
+              maxLength={500}
             />
           </div>
         </div>

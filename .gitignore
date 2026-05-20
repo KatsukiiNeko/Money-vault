@@ -99,3 +99,38 @@ Thumbs.db
 # Git patches / stash exports
 # =========================
 *.patch
+
+# =========================
+# Database files
+# =========================
+*.sqlite
+*.sqlite3
+*.db
+
+# =========================
+# Exported / backup data
+# =========================
+exported-*.json
+backup-*.json
+*.json.bak
+
+# =========================
+# AI tooling configs
+# =========================
+.claude/
+.openai/
+.ollama/
+.openrouter/
+.copilot/
+.cursor/
+
+# =========================
+# Auth / credentials
+# =========================
+.npmrc
+.yarnrc
+.pnpm-store/
+credentials.json
+*.credentials
+service-account*.json
+wrangler.toml
