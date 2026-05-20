@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { calculateForecast } from '../utils/forecast';
 import { db } from '../db/db';
-import { getSessionKey, decryptTransactionFromStorage } from '../crypto/crypto';
+import { getSessionKey, decryptTransactionFromStorage, getActiveAccountId } from '../crypto/crypto';
 import { useCurrency } from '../context/CurrencyContext';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -20,13 +20,15 @@ const Forecast = () => {
           return;
         }
 
-        const allEncrypted = await db.transactions.toArray();
+        const allEncrypted = await db.transactions.where('accountId').equals(getActiveAccountId()).toArray();
         const transactions = [];
         for (const enc of allEncrypted) {
           try {
             const tx = await decryptTransactionFromStorage(enc, key);
             transactions.push(tx);
-          } catch {}
+          } catch (err) {
+            console.warn('[MoneyVault] Decryption failed for transaction', enc.id, err);
+          }
         }
 
         const forecast = calculateForecast(transactions);

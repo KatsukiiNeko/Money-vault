@@ -406,6 +406,106 @@ export const translations = {
   'backup.failedRestorePrefix': {
     en: 'Restore failed: ',
     vi: 'Khôi phục thất bại: '
+  },
+
+  // ── Account Selector ──
+  'accounts.title': {
+    en: 'Money Vault',
+    vi: 'Money Vault'
+  },
+  'accounts.selectPrompt': {
+    en: 'Select an account',
+    vi: 'Chọn tài khoản'
+  },
+  'accounts.create': {
+    en: 'Create New Account',
+    vi: 'Tạo tài khoản mới'
+  },
+  'accounts.createName': {
+    en: 'Account Name',
+    vi: 'Tên tài khoản'
+  },
+  'accounts.createNamePlaceholder': {
+    en: 'e.g. Personal, Business',
+    vi: 'vd: Cá nhân, Kinh doanh'
+  },
+  'accounts.createBtn': {
+    en: 'Create Account',
+    vi: 'Tạo tài khoản'
+  },
+  'accounts.delete': {
+    en: 'Delete Account',
+    vi: 'Xóa tài khoản'
+  },
+  'accounts.deleteConfirm': {
+    en: 'Delete "{name}"? All transactions will be permanently deleted.',
+    vi: 'Xóa "{name}"? Tất cả giao dịch sẽ bị xóa vĩnh viễn.'
+  },
+  'accounts.deletePasswordPrompt': {
+    en: 'Enter password to confirm',
+    vi: 'Nhập mật khẩu để xác nhận'
+  },
+  'accounts.empty': {
+    en: 'No accounts yet. Create your first account to get started.',
+    vi: 'Chưa có tài khoản. Tạo tài khoản đầu tiên để bắt đầu.'
+  },
+  'accounts.createdAt': {
+    en: 'Created',
+    vi: 'Ngày tạo'
+  },
+  'accounts.switch': {
+    en: 'Switch Account',
+    vi: 'Đổi tài khoản'
+  },
+  'accounts.errors.nameRequired': {
+    en: 'Please enter an account name',
+    vi: 'Vui lòng nhập tên tài khoản'
+  },
+  'accounts.errors.nameTooLong': {
+    en: 'Account name must be 50 characters or less',
+    vi: 'Tên tài khoản phải từ 50 ký tự trở xuống'
+  },
+  'accounts.errors.createFailed': {
+    en: 'Failed to create account',
+    vi: 'Tạo tài khoản thất bại'
+  },
+  'accounts.errors.deleteFailed': {
+    en: 'Failed to delete account',
+    vi: 'Xóa tài khoản thất bại'
+  },
+  'accounts.errors.wrongPassword': {
+    en: 'Incorrect password',
+    vi: 'Sai mật khẩu'
+  },
+  'accounts.cancel': {
+    en: 'Cancel',
+    vi: 'Hủy'
+  },
+
+  // ── Lock Screen additions ──
+  'lock.errors.tokenMissing': {
+    en: 'Data corrupted. Account reset required.',
+    vi: 'Dữ liệu bị lỗi. Cần đặt lại tài khoản.'
+  },
+  'lock.resetAccount': {
+    en: 'Reset Account',
+    vi: 'Đặt lại tài khoản'
+  },
+  'lock.resetConfirm': {
+    en: 'This will permanently delete all data for this account. Continue?',
+    vi: 'Thao tác này sẽ xóa vĩnh viễn tất cả dữ liệu của tài khoản này. Tiếp tục?'
+  },
+
+  // ── Dashboard additions ──
+  'dashboard.switchAccount': {
+    en: 'Switch Account',
+    vi: 'Đổi tài khoản'
+  },
+
+  // ── Session ──
+  'session.timeoutWarning': {
+    en: 'Session expired due to inactivity',
+    vi: 'Phiên đã hết hạn do không hoạt động'
   }
 };
 

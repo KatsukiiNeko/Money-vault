@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { db } from '../db/db';
-import { getSessionKey, decryptTransactionFromStorage, encryptData, decryptData, generateIV } from '../crypto/crypto';
-import { useCurrency } from '../context/CurrencyContext';
+import { getSessionKey, decryptTransactionFromStorage, encryptData, decryptData, generateIV, getActiveAccountId } from '../crypto/crypto';
 import TransactionForm from './TransactionForm';
 import History from './History';
 import Forecast from './Forecast';
@@ -9,13 +8,27 @@ import BackupRestore from './BackupRestore';
 import PasswordManager from './PasswordManager';
 import CurrencyToggle from './CurrencyToggle';
 import LanguageToggle from './LanguageToggle';
+import { useCurrency } from '../context/CurrencyContext';
 import { useLanguage } from '../context/LanguageContext';
 
-const Dashboard = ({ onLogout }) => {
+const Dashboard = ({ onLogout, onSwitchAccount }) => {
   const [balance, setBalance] = useState({ income: 0, expenses: 0, balance: 0 });
   const [refreshKey, setRefreshKey] = useState(0);
+  const [accountName, setAccountName] = useState('');
   const { formatCurrency } = useCurrency();
   const { t } = useLanguage();
+
+  const accountId = getActiveAccountId();
+
+  useEffect(() => {
+    const loadAccount = async () => {
+      try {
+        const account = await db.accounts.get(accountId);
+        if (account) setAccountName(account.name);
+      } catch { /* account not found */ }
+    };
+    loadAccount();
+  }, [accountId]);
 
   useEffect(() => {
     const calculateBalance = async () => {
@@ -23,7 +36,7 @@ const Dashboard = ({ onLogout }) => {
         const key = getSessionKey();
         if (!key) return;
 
-        const allEncrypted = await db.transactions.toArray();
+        const allEncrypted = await db.transactions.where('accountId').equals(accountId).toArray();
         let totalIncome = 0;
         let totalExpenses = 0;
 
@@ -35,7 +48,9 @@ const Dashboard = ({ onLogout }) => {
             } else {
               totalExpenses += tx.amount;
             }
-          } catch {}
+          } catch (err) {
+            console.warn('[MoneyVault] Decryption failed for transaction', enc.id, err);
+          }
         }
 
         setBalance({
@@ -43,11 +58,11 @@ const Dashboard = ({ onLogout }) => {
           expenses: totalExpenses,
           balance: totalIncome - totalExpenses
         });
-      } catch {}
+      } catch { /* balance calc failed */ }
     };
 
     calculateBalance();
-  }, [refreshKey]);
+  }, [refreshKey, accountId]);
 
   const handleTransactionAdded = () => {
     setRefreshKey(k => k + 1);
@@ -57,12 +72,14 @@ const Dashboard = ({ onLogout }) => {
     const key = getSessionKey();
     if (!key) throw new Error(t('dashboard.sessionExpired'));
 
-    const allEncrypted = await db.transactions.toArray();
+    const allEncrypted = await db.transactions.where('accountId').equals(accountId).toArray();
+    const saltSetting = await db.settings.get('salt:' + accountId);
 
     const backupData = {
       transactions: allEncrypted,
+      salt: saltSetting ? saltSetting.value : null,
       timestamp: new Date().toISOString(),
-      version: 1
+      version: 2
     };
 
     const iv = generateIV();
@@ -72,7 +89,7 @@ const Dashboard = ({ onLogout }) => {
     const backup = {
       iv: Array.from(iv),
       ciphertext: Array.from(new Uint8Array(encrypted)),
-      version: 1,
+      version: 2,
       algorithm: 'AES-GCM-256'
     };
 
@@ -108,7 +125,6 @@ const Dashboard = ({ onLogout }) => {
           }
 
           const iv = new Uint8Array(backup.iv);
-
           const ciphertext = new Uint8Array(backup.ciphertext);
           const decrypted = await decryptData(ciphertext, key, iv);
           const backupData = JSON.parse(decrypted);
@@ -117,8 +133,27 @@ const Dashboard = ({ onLogout }) => {
             throw new Error(t('dashboard.invalidBackupData'));
           }
 
-          await db.transactions.clear();
-          await db.transactions.bulkAdd(backupData.transactions);
+          for (const tx of backupData.transactions) {
+            if (!tx.iv || !tx.data) {
+              if (!tx.date || !tx.type || tx.amount === undefined) {
+                throw new Error(t('dashboard.invalidBackupData'));
+              }
+            }
+          }
+
+          await db.transactions.where('accountId').equals(accountId).delete();
+          const transactionsWithAccount = backupData.transactions.map(tx => ({
+            ...tx,
+            accountId
+          }));
+          await db.transactions.bulkAdd(transactionsWithAccount);
+
+          if (backupData.salt) {
+            const existingSalt = await db.settings.get('salt:' + accountId);
+            if (!existingSalt) {
+              await db.settings.put({ key: 'salt:' + accountId, value: backupData.salt });
+            }
+          }
 
           setRefreshKey(k => k + 1);
           resolve();
@@ -133,10 +168,16 @@ const Dashboard = ({ onLogout }) => {
   return (
     <div className="dashboard">
       <div className="dashboard-header">
-        <h1>{t('dashboard.title')}</h1>
+        <div className="dashboard-title-row">
+          <h1>{t('dashboard.title')}</h1>
+          <span className="account-name-badge">{accountName}</span>
+        </div>
         <div className="header-controls">
           <LanguageToggle />
           <CurrencyToggle />
+          <button onClick={onSwitchAccount} className="switch-account-button">
+            {t('accounts.switch')}
+          </button>
           <button onClick={onLogout} className="logout-button">
             {t('dashboard.lock')}
           </button>

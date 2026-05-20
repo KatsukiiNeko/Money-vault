@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { deriveKey, generateSalt, getSessionKey, setSessionKey, createVerificationToken, verifyPassword, encryptTransactionForStorage, decryptTransactionFromStorage } from '../crypto/crypto';
+import { deriveKey, generateSalt, setSessionKey, createVerificationToken, verifyPassword, encryptTransactionForStorage, decryptTransactionFromStorage, getActiveAccountId } from '../crypto/crypto';
 import { db } from '../db/db';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -33,11 +33,13 @@ const PasswordManager = ({ onPasswordChange }) => {
       return;
     }
 
+    const accountId = getActiveAccountId();
+
     try {
       setIsLoading(true);
 
-      const salt = await db.settings.get('salt');
-      const token = await db.settings.get('verificationToken');
+      const salt = await db.settings.get('salt:' + accountId);
+      const token = await db.settings.get('verificationToken:' + accountId);
       if (!salt || !token) {
         setError(t('password.errors.notSet'));
         setIsLoading(false);
@@ -54,43 +56,47 @@ const PasswordManager = ({ onPasswordChange }) => {
         return;
       }
 
-      const allEncrypted = await db.transactions.toArray();
-
+      const allEncrypted = await db.transactions.where('accountId').equals(accountId).toArray();
       const decryptedTransactions = [];
       for (const enc of allEncrypted) {
         try {
           const tx = await decryptTransactionFromStorage(enc, oldKey);
           decryptedTransactions.push(tx);
-        } catch {
-          setError(t('password.errors.decryptFailed'));
-          setIsLoading(false);
-          return;
+        } catch (err) {
+          console.warn('[MoneyVault] Decryption failed during password change', enc.id, err);
+          throw new Error(t('password.errors.decryptFailed'), { cause: err });
         }
       }
 
       const newSalt = generateSalt();
       const newKey = await deriveKey(newPassword, newSalt);
 
-      await db.transactions.clear();
+      const reEncrypted = [];
       for (const tx of decryptedTransactions) {
         const encrypted = await encryptTransactionForStorage(tx, newKey);
-        await db.transactions.add(encrypted);
+        encrypted.accountId = accountId;
+        reEncrypted.push(encrypted);
       }
 
-      await db.settings.put({ key: 'salt', value: Array.from(newSalt) });
       const newToken = await createVerificationToken(newKey);
-      await db.settings.put({ key: 'verificationToken', value: newToken });
 
-      setSessionKey(newKey);
+      await db.transaction('rw', db.transactions, db.settings, async () => {
+        await db.transactions.where('accountId').equals(accountId).delete();
+        await db.transactions.bulkAdd(reEncrypted);
+        await db.settings.put({ key: 'salt:' + accountId, value: Array.from(newSalt) });
+        await db.settings.put({ key: 'verificationToken:' + accountId, value: newToken });
+        await db.settings.put({ key: 'passwordSet:' + accountId, value: true });
+      });
 
+      setSessionKey(newKey, accountId);
       setSuccess(t('password.success.changed'));
-      setIsLoading(false);
-
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
+      if (onPasswordChange) onPasswordChange();
     } catch (err) {
-      setError(t('password.errors.changeFailed') + err.message);
+      setError(err.message || t('password.errors.changeFailed'));
+    } finally {
       setIsLoading(false);
     }
   };
@@ -98,124 +104,78 @@ const PasswordManager = ({ onPasswordChange }) => {
   return (
     <div className="password-manager">
       <button
-        className="password-manager-toggle"
+        className={`password-manager-toggle ${isExpanded ? 'expanded' : ''}`}
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="toggle-content">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-light)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
           <span>{t('password.toggleLabel')}</span>
         </div>
-        <svg
-          className={`chevron ${isExpanded ? 'expanded' : ''}`}
-          width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-        >
-          <polyline points="6 9 12 15 18 9"/>
+        <svg className={`chevron ${isExpanded ? 'expanded' : ''}`} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="6 9 12 15 18 9" />
         </svg>
       </button>
 
       {isExpanded && (
         <form onSubmit={handleChangePassword} className="password-form">
           <div className="password-field">
-            <label htmlFor="currentPassword">{t('password.currentLabel')}</label>
+            <label>{t('password.currentLabel')}</label>
             <div className="input-wrapper">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary-light)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
               </svg>
               <input
                 type="password"
-                id="currentPassword"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                required
-                autoComplete="current-password"
                 placeholder={t('password.currentPlaceholder')}
+                disabled={isLoading}
               />
             </div>
           </div>
 
           <div className="password-field">
-            <label htmlFor="newPassword">{t('password.newLabel')}</label>
+            <label>{t('password.newLabel')}</label>
             <div className="input-wrapper">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary-light)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
               </svg>
               <input
                 type="password"
-                id="newPassword"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                required
-                autoComplete="new-password"
                 placeholder={t('password.newPlaceholder')}
+                disabled={isLoading}
               />
             </div>
           </div>
 
           <div className="password-field">
-            <label htmlFor="confirmPassword">{t('password.confirmLabel')}</label>
+            <label>{t('password.confirmLabel')}</label>
             <div className="input-wrapper">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                <path d="M9 12l2 2 4-4"/>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary-light)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               </svg>
               <input
                 type="password"
-                id="confirmPassword"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                autoComplete="new-password"
                 placeholder={t('password.confirmPlaceholder')}
+                disabled={isLoading}
               />
             </div>
           </div>
 
-          <button
-            type="submit"
-            className="password-submit-btn"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <svg className="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M21 12a9 9 0 11-6.219-8.56"/>
-                </svg>
-                {t('password.reEncrypting')}
-              </>
-            ) : (
-              <>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
-                {t('password.update')}
-              </>
-            )}
+          {error && <div className="password-alert error">{error}</div>}
+          {success && <div className="password-alert success">{success}</div>}
+
+          <button type="submit" className="password-submit-btn" disabled={isLoading}>
+            {isLoading ? t('password.reEncrypting') : t('password.update')}
           </button>
-
-          {error && (
-            <div className="password-alert error">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="15" y1="9" x2="9" y2="15"/>
-                <line x1="9" y1="9" x2="15" y2="15"/>
-              </svg>
-              {error}
-            </div>
-          )}
-
-          {success && (
-            <div className="password-alert success">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                <polyline points="22 4 12 14.01 9 11.01"/>
-              </svg>
-              {success}
-            </div>
-          )}
         </form>
       )}
     </div>

@@ -2,18 +2,41 @@ import { db } from '../db/db';
 
 const VERIFICATION_PLAINTEXT = 'MONEYVAULT_VERIFY_v1';
 
-let _sessionKey = null;
+const _sessionKeys = {};
+let _activeAccountId = null;
 
-export function getSessionKey() {
-  return _sessionKey;
+export function getSessionKey(accountId) {
+  const id = accountId || _activeAccountId;
+  return id ? _sessionKeys[id] || null : null;
 }
 
-export function setSessionKey(key) {
-  _sessionKey = key;
+export function setSessionKey(key, accountId) {
+  const id = accountId || _activeAccountId;
+  if (id) {
+    _sessionKeys[id] = key;
+    _activeAccountId = id;
+  }
 }
 
 export function clearSessionKey() {
-  _sessionKey = null;
+  if (_activeAccountId) {
+    delete _sessionKeys[_activeAccountId];
+  }
+}
+
+export function clearAllSessionKeys() {
+  for (const key of Object.keys(_sessionKeys)) {
+    delete _sessionKeys[key];
+  }
+  _activeAccountId = null;
+}
+
+export function getActiveAccountId() {
+  return _activeAccountId;
+}
+
+export function setActiveAccountId(id) {
+  _activeAccountId = id;
 }
 
 export async function deriveKey(password, salt, iterations = 200000) {
@@ -104,10 +127,15 @@ export async function decryptTransactionFromStorage(encryptedTransaction, key) {
   if (!encryptedTransaction.iv || !encryptedTransaction.data) {
     return { ...encryptedTransaction };
   }
-  const iv = new Uint8Array(encryptedTransaction.iv);
-  const data = new Uint8Array(encryptedTransaction.data);
-  const jsonString = await decryptData(data, key, iv);
-  return JSON.parse(jsonString);
+  try {
+    const iv = new Uint8Array(encryptedTransaction.iv);
+    const data = new Uint8Array(encryptedTransaction.data);
+    const jsonString = await decryptData(data, key, iv);
+    return JSON.parse(jsonString);
+  } catch (err) {
+    console.warn('[MoneyVault] Decryption failed for transaction', encryptedTransaction.id, err);
+    throw err;
+  }
 }
 
 export async function createBackup(password) {
@@ -168,6 +196,9 @@ export default {
   getSessionKey,
   setSessionKey,
   clearSessionKey,
+  clearAllSessionKeys,
+  getActiveAccountId,
+  setActiveAccountId,
   createVerificationToken,
   verifyPassword,
   encryptTransactionForStorage,

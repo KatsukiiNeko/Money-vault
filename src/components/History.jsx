@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { db } from '../db/db';
-import { getSessionKey, decryptTransactionFromStorage } from '../crypto/crypto';
+import { getSessionKey, decryptTransactionFromStorage, getActiveAccountId } from '../crypto/crypto';
 import { useCurrency } from '../context/CurrencyContext';
 import { useLanguage } from '../context/LanguageContext';
 import { categoryValueToKey } from '../i18n/translations';
@@ -22,14 +22,16 @@ const History = () => {
           return;
         }
 
-        const allEncrypted = await db.transactions.toArray();
+        const allEncrypted = await db.transactions.where('accountId').equals(getActiveAccountId()).toArray();
         const decrypted = [];
         for (const enc of allEncrypted) {
           try {
             const tx = await decryptTransactionFromStorage(enc, key);
             tx.id = enc.id;
             decrypted.push(tx);
-          } catch {}
+          } catch (err) {
+            console.warn('[MoneyVault] Decryption failed for transaction', enc.id, err);
+          }
         }
         setTransactions(decrypted);
         setLoading(false);
@@ -40,7 +42,7 @@ const History = () => {
     };
 
     fetchTransactions();
-  }, []);
+  }, [t]);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);

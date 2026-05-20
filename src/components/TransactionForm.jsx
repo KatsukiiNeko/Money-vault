@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { db } from '../db/db';
-import { getSessionKey, encryptTransactionForStorage } from '../crypto/crypto';
+import { getSessionKey, encryptTransactionForStorage, getActiveAccountId } from '../crypto/crypto';
 import { useLanguage } from '../context/LanguageContext';
 
 const TransactionForm = ({ onTransactionAdded }) => {
@@ -57,6 +57,7 @@ const TransactionForm = ({ onTransactionAdded }) => {
 
     try {
       const encrypted = await encryptTransactionForStorage(transaction, key);
+      encrypted.accountId = getActiveAccountId();
       await db.transactions.add(encrypted);
       setSuccess(t('form.success.added'));
       setError('');
@@ -66,7 +67,7 @@ const TransactionForm = ({ onTransactionAdded }) => {
       if (onTransactionAdded) {
         onTransactionAdded();
       }
-    } catch (err) {
+    } catch {
       setError(t('form.errors.addFailed'));
     }
   };

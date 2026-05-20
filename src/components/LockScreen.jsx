@@ -4,55 +4,52 @@ import { db } from '../db/db';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageToggle from './LanguageToggle';
 
-const LockScreen = ({ onUnlock }) => {
+const LockScreen = ({ accountId, onUnlock }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [isLockedOut, setIsLockedOut] = useState(false);
   const [lockoutEndTime, setLockoutEndTime] = useState(null);
   const [isUnlocking, setIsUnlocking] = useState(false);
+  const [tokenMissing, setTokenMissing] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
   const passwordInputRef = useRef(null);
   const intervalRef = useRef(null);
   const { t } = useLanguage();
 
-  const checkIfPasswordSet = async () => {
-    try {
-      const setting = await db.settings.get('passwordSet');
-      return !!setting;
-    } catch (error) {
-      return false;
-    }
-  };
-
   useEffect(() => {
     const checkLockoutStatus = async () => {
       try {
-        const lockoutData = await db.settings.get('lockoutData');
+        const lockoutData = await db.settings.get('lockoutData:' + accountId);
         if (lockoutData && lockoutData.value) {
           const { endTime, failedAttempts } = lockoutData.value;
-          const now = new Date().getTime();
+          const now = Date.now();
           if (endTime > now) {
             setIsLockedOut(true);
             setLockoutEndTime(endTime);
             setFailedAttempts(failedAttempts || 0);
           } else {
-            await db.settings.delete('lockoutData');
+            setFailedAttempts(failedAttempts || 0);
+            await db.settings.put({
+              key: 'lockoutData:' + accountId,
+              value: { endTime: 0, failedAttempts: failedAttempts || 0 }
+            });
           }
         }
-      } catch {}
+      } catch { /* lockout check failed */ }
     };
 
     checkLockoutStatus();
-  }, []);
+  }, [accountId]);
 
   useEffect(() => {
     if (isLockedOut && lockoutEndTime) {
       intervalRef.current = setInterval(() => {
-        const now = new Date().getTime();
-        if (now >= lockoutEndTime) {
+        const currentTime = Date.now();
+        setNow(currentTime);
+        if (currentTime >= lockoutEndTime) {
           setIsLockedOut(false);
           setLockoutEndTime(null);
-          db.settings.delete('lockoutData').catch(() => {});
         }
       }, 1000);
     }
@@ -83,10 +80,10 @@ const LockScreen = ({ onUnlock }) => {
     }
 
     try {
-      const passwordSet = await checkIfPasswordSet();
+      const passwordSet = await db.settings.get('passwordSet:' + accountId);
 
       if (passwordSet) {
-        const salt = await db.settings.get('salt');
+        const salt = await db.settings.get('salt:' + accountId);
         if (!salt) {
           setError(t('lock.errors.corrupted'));
           return;
@@ -95,19 +92,22 @@ const LockScreen = ({ onUnlock }) => {
         const saltArray = new Uint8Array(Object.values(salt.value));
         const key = await deriveKey(password, saltArray);
 
-        let token = await db.settings.get('verificationToken');
+        const token = await db.settings.get('verificationToken:' + accountId);
         if (!token) {
-          const newToken = await createVerificationToken(key);
-          await db.settings.put({ key: 'verificationToken', value: newToken });
-          token = { value: newToken };
+          setTokenMissing(true);
+          setError(t('lock.errors.tokenMissing'));
+          return;
         }
 
         const isValid = await verifyPassword(key, token.value);
 
         if (isValid) {
           setFailedAttempts(0);
-          await db.settings.delete('lockoutData').catch(() => {});
-          setSessionKey(key);
+          await db.settings.put({
+            key: 'lockoutData:' + accountId,
+            value: { endTime: 0, failedAttempts: 0 }
+          }).catch(() => {});
+          setSessionKey(key, accountId);
           setPassword('');
           setIsUnlocking(true);
           setTimeout(() => onUnlock(), 800);
@@ -115,41 +115,60 @@ const LockScreen = ({ onUnlock }) => {
           const newFailedAttempts = failedAttempts + 1;
           setFailedAttempts(newFailedAttempts);
 
+          const lockoutValue = {
+            endTime: newFailedAttempts >= 5 ? Date.now() + 30000 : 0,
+            failedAttempts: newFailedAttempts
+          };
+          await db.settings.put({
+            key: 'lockoutData:' + accountId,
+            value: lockoutValue
+          }).catch(() => {});
+
           if (newFailedAttempts >= 5) {
-            const endTime = new Date().getTime() + 30000;
             setIsLockedOut(true);
-            setLockoutEndTime(endTime);
-            await db.settings.put({
-              key: 'lockoutData',
-              value: { endTime, failedAttempts: newFailedAttempts }
-            }).catch(() => {});
+            setLockoutEndTime(lockoutValue.endTime);
             setError(t('lock.errors.tooManyAttempts'));
           } else {
             setError(t('lock.errors.invalid'));
-            await db.settings.put({
-              key: 'lockoutData',
-              value: { endTime: 0, failedAttempts: newFailedAttempts }
-            }).catch(() => {});
           }
           setPassword('');
         }
       } else {
         const salt = generateSalt();
-        await db.settings.put({ key: 'salt', value: Array.from(salt) });
+        await db.settings.put({ key: 'salt:' + accountId, value: Array.from(salt) });
 
         const key = await deriveKey(password, salt);
         const token = await createVerificationToken(key);
-        await db.settings.put({ key: 'verificationToken', value: token });
-        await db.settings.put({ key: 'passwordSet', value: true });
+        await db.settings.put({ key: 'verificationToken:' + accountId, value: token });
+        await db.settings.put({ key: 'passwordSet:' + accountId, value: true });
 
-        setSessionKey(key);
+        setSessionKey(key, accountId);
         setPassword('');
         setIsUnlocking(true);
         setTimeout(() => onUnlock(), 800);
       }
-    } catch (error) {
+    } catch {
       setError(t('lock.errors.unlockFailed'));
       setPassword('');
+    }
+  };
+
+  const handleResetAccount = async () => {
+    if (!window.confirm(t('lock.resetConfirm'))) return;
+
+    try {
+      await db.transactions.where('accountId').equals(accountId).delete();
+      await db.settings.delete('salt:' + accountId);
+      await db.settings.delete('verificationToken:' + accountId);
+      await db.settings.delete('passwordSet:' + accountId);
+      await db.settings.delete('lockoutData:' + accountId);
+      setTokenMissing(false);
+      setError('');
+      setFailedAttempts(0);
+      setIsLockedOut(false);
+      setPassword('');
+    } catch {
+      setError(t('lock.errors.unlockFailed'));
     }
   };
 
@@ -181,14 +200,20 @@ const LockScreen = ({ onUnlock }) => {
 
           {isLockedOut && (
             <div className="lockout-timer">
-              {t('lock.lockoutTimer', { seconds: Math.ceil((lockoutEndTime - new Date().getTime()) / 1000) })}
+              {t('lock.lockoutTimer', { seconds: Math.ceil((lockoutEndTime - now) / 1000) })}
             </div>
           )}
 
-          <button type="submit" className="unlock-button" disabled={isLockedOut}>
+          <button type="submit" className="unlock-button" disabled={isLockedOut || tokenMissing}>
             {t('lock.unlock')}
           </button>
         </form>
+
+        {tokenMissing && (
+          <button className="reset-account-btn" onClick={handleResetAccount}>
+            {t('lock.resetAccount')}
+          </button>
+        )}
 
         <div className="app-info">
           <p>{t('lock.info.encrypted')}</p>
