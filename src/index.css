@@ -39,6 +39,28 @@ body {
   color: var(--text-dark);
 }
 
+/* Footer */
+.footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem 0;
+  font-size: 0.75rem;
+  color: var(--text-muted-dark);
+  letter-spacing: 0.03em;
+  border-top: 1px solid var(--border-dark);
+  background: var(--bg-dark-2);
+  user-select: none;
+}
+
+.footer span {
+  background: linear-gradient(135deg, var(--primary-light), var(--primary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 500;
+}
+
 /* Lock Screen */
 .lock-screen {
   display: flex;

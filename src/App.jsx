@@ -22,6 +22,9 @@ function App() {
       ) : (
         <Dashboard onLogout={handleLogout} />
       )}
+      <footer className="footer">
+        <span>&copy; Katsukii Neko. All rights reserved.</span>
+      </footer>
     </div>
   );
 }
