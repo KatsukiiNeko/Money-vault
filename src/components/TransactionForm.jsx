@@ -3,9 +3,23 @@ import { db } from '../db/db';
 import { getSessionKey, encryptTransactionForStorage, getActiveAccountId } from '../crypto/crypto';
 import { useLanguage } from '../context/LanguageContext';
 
+const CATEGORY_TYPE_MAP = {
+  'Food & Dining': 'expense',
+  'Transportation': 'expense',
+  'Shopping': 'expense',
+  'Entertainment': 'expense',
+  'Bills & Utilities': 'expense',
+  'Healthcare': 'expense',
+  'Travel': 'expense',
+  'Education': 'expense',
+  'Gifts & Donations': 'expense',
+  'Salary': 'income',
+  'Investment': 'income',
+  'Other Income': 'income',
+};
+
 const TransactionForm = ({ onTransactionAdded }) => {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [type, setType] = useState('expense');
   const [category, setCategory] = useState('');
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
@@ -31,13 +45,13 @@ const TransactionForm = ({ onTransactionAdded }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
-      setError(t('form.errors.invalidAmount'));
+    if (!category) {
+      setError(t('form.errors.selectCategory'));
       return;
     }
 
-    if (!category) {
-      setError(t('form.errors.selectCategory'));
+    if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+      setError(t('form.errors.invalidAmount'));
       return;
     }
 
@@ -49,7 +63,7 @@ const TransactionForm = ({ onTransactionAdded }) => {
 
     const transaction = {
       date: date,
-      type: type,
+      type: CATEGORY_TYPE_MAP[category],
       category: category,
       amount: parseFloat(amount),
       note: note
@@ -91,15 +105,10 @@ const TransactionForm = ({ onTransactionAdded }) => {
 
         <div className="form-row">
           <div className="form-group">
-            <label htmlFor="type">{t('form.type')}</label>
-            <select
-              id="type"
-              value={type}
-              onChange={(e) => setType(e.target.value)}
-            >
-              <option value="expense">{t('form.expense')}</option>
-              <option value="income">{t('form.income')}</option>
-            </select>
+            <label>{t('form.type')}</label>
+            <div className={`type-indicator ${category ? CATEGORY_TYPE_MAP[category] : ''}`}>
+              {category ? (CATEGORY_TYPE_MAP[category] === 'income' ? t('form.income') : t('form.expense')) : '—'}
+            </div>
           </div>
         </div>
 
