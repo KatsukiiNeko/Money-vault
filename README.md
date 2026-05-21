@@ -12,6 +12,7 @@ Private by design. Encrypted locally. No cloud tracking. No data collection.
 ![PWA](https://img.shields.io/badge/PWA-Offline%20Ready-5A0FC8?style=for-the-badge\&logo=pwa\&logoColor=white)
 ![Encryption](https://img.shields.io/badge/Encryption-AES--GCM-success?style=for-the-badge\&logo=letsencrypt\&logoColor=white)
 ![IndexedDB](https://img.shields.io/badge/Storage-IndexedDB-orange?style=for-the-badge)
+![EWMA](https://img.shields.io/badge/Forecast-EWMA%20%2B%20IQR-blue?style=for-the-badge)
 </div>
 
 ---
@@ -24,8 +25,8 @@ Private by design. Encrypted locally. No cloud tracking. No data collection.
 * 📱 **Progressive Web App**
   Fully installable on desktop and mobile devices with offline support.
 
-* 📊 **Financial Forecasting**
-  Predicts month-end balance based on your income and spending behavior.
+* 📊 **Adaptive Financial Forecasting**
+  Predicts month-end balance using an EWMA-based algorithm with IQR outlier filtering and fixed-bill detection — adapts to spending habit changes in real time, ignores one-off spikes, and projects pending recurring bills from historical median.
 
 * 📴 **Offline First**
   Works without internet access after installation.
@@ -41,6 +42,27 @@ Private by design. Encrypted locally. No cloud tracking. No data collection.
 
 * 🗂️ **Local Database Storage**
   Uses IndexedDB through Dexie.js for structured local persistence.
+
+---
+
+## 📈 Adaptive Forecasting Engine
+
+The forecast goes beyond a simple daily average. Three lightweight statistical tools work together in O(n) time, computed fresh on every dashboard load:
+
+| Layer | Technique | Purpose |
+|-------|-----------|---------|
+| **Outlier Removal** | IQR (1.5× interquartile range) | Filters large one-off expenses (furniture, emergency repairs) from daily spending totals |
+| **Spending Rate** | EWMA (α = 0.3) | Recency-biased moving average that adapts to habit changes within 3–5 days |
+| **Fixed Bills** | Historical median | Detects unpaid recurring obligations (utilities, subscriptions) and projects them from past transactions |
+
+**How it works:**
+1. Variable expenses are bucketed by day; zero-spend days are excluded before outlier filtering
+2. IQR removes statistical outliers from active-day totals
+3. EWMA computes a weighted daily rate — recent days dominate, old habits fade
+4. Fixed categories are checked against current month; unpaid ones are projected at their historical median
+5. Projected balance = current balance − (EWMA daily rate × remaining days) − pending fixed bills
+
+No ML. No external libraries. Just math that runs in microseconds.
 
 ---
 

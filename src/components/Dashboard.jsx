@@ -249,7 +249,7 @@ const Dashboard = ({ onLogout, onSwitchAccount }) => {
           <BackupRestore onBackup={handleBackup} onRestore={handleRestore} />
         </div>
         <div className="right-column">
-          <Forecast />
+          <Forecast currentBalance={balance.balance} />
           <History key={refreshKey} />
         </div>
       </div>
