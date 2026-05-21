@@ -3,6 +3,7 @@ import { deriveKey, generateSalt, createVerificationToken, verifyPassword, setSe
 import { db } from '../db/db';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageToggle from './LanguageToggle';
+import ThemeToggle from './ThemeToggle';
 
 const LockScreen = ({ accountId, onUnlock, onBack }) => {
   const [password, setPassword] = useState('');
@@ -181,7 +182,10 @@ const LockScreen = ({ accountId, onUnlock, onBack }) => {
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </button>
-          <LanguageToggle />
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <ThemeToggle />
+            <LanguageToggle />
+          </div>
         </div>
         <h1>{t('lock.title')}</h1>
         <h2>{t('lock.subtitle')}</h2>

@@ -8,6 +8,7 @@ import BackupRestore from './BackupRestore';
 import PasswordManager from './PasswordManager';
 import CurrencyToggle from './CurrencyToggle';
 import LanguageToggle from './LanguageToggle';
+import ThemeToggle from './ThemeToggle';
 import { useCurrency } from '../context/CurrencyContext';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -216,6 +217,7 @@ const Dashboard = ({ onLogout, onSwitchAccount }) => {
           )}
         </div>
         <div className="header-controls">
+          <ThemeToggle />
           <LanguageToggle />
           <CurrencyToggle />
           <button onClick={onSwitchAccount} className="switch-account-button">

@@ -1,117 +1,50 @@
-# Money Vault
-
-<div align="center">
-
 # 🔐 Money Vault
 
-**A secure, offline-first personal finance vault built as a Progressive Web App (PWA).**
-Private by design. Encrypted locally. No cloud tracking. No data collection.
-
-![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge\&logo=react\&logoColor=black)
-![Vite](https://img.shields.io/badge/Vite-7-646CFF?style=for-the-badge\&logo=vite\&logoColor=white)
-![PWA](https://img.shields.io/badge/PWA-Offline%20Ready-5A0FC8?style=for-the-badge\&logo=pwa\&logoColor=white)
-![Encryption](https://img.shields.io/badge/Encryption-AES--GCM-success?style=for-the-badge\&logo=letsencrypt\&logoColor=white)
-![IndexedDB](https://img.shields.io/badge/Storage-IndexedDB-orange?style=for-the-badge)
-![EWMA](https://img.shields.io/badge/Forecast-EWMA%20%2B%20IQR-blue?style=for-the-badge)
-</div>
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white&style=for-the-badge)
+![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white&style=for-the-badge)
+![PWA](https://img.shields.io/badge/PWA-Offline%20Ready-5A0FC8?logo=pwa&logoColor=white&style=for-the-badge)
+![Encryption](https://img.shields.io/badge/Encryption-AES--GCM-00A86B?logo=letsencrypt&logoColor=white&style=for-the-badge)
+![IndexedDB](https://img.shields.io/badge/Storage-IndexedDB-FF6B4A?style=for-the-badge)
+![EWMA](https://img.shields.io/badge/Forecast-EWMA%20%2B%20IQR-4169E1?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge)
+![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)
 
 ---
 
-## ✨ Features
+## 🚀 Overview
 
-* 🔒 **End-to-End Encryption**
-  All financial data is encrypted locally using the Web Crypto API with AES-GCM.
+A **secure, offline-first personal finance vault** built as a **Progressive Web App (PWA)** with **end-to-end encryption** and **zero external dependencies**.
 
-* 📱 **Progressive Web App**
-  Fully installable on desktop and mobile devices with offline support.
+This project demonstrates a privacy-centric frontend architecture with a focus on:
 
-* 📊 **Adaptive Financial Forecasting**
-  Predicts month-end balance using an EWMA-based algorithm with IQR outlier filtering and fixed-bill detection — adapts to spending habit changes in real time, ignores one-off spikes, and projects pending recurring bills from historical median.
+- 🔒 **Security-first design**
+- 📴 **Offline functionality**
+- 📊 **Smart financial forecasting**
+- 🧹 **Zero tracking philosophy**
 
-* 📴 **Offline First**
-  Works without internet access after installation.
-
-* 🔐 **Zero-Knowledge Privacy**
-  Your data never leaves your device.
-
-* 🌙 **Modern Dark UI**
-  Minimal, clean interface optimized for focus and readability.
-
-* ⚡ **Fast & Lightweight**
-  Built with Vite and optimized for instant loading.
-
-* 🗂️ **Local Database Storage**
-  Uses IndexedDB through Dexie.js for structured local persistence.
+It serves as both a **personal finance tool** and an **experimental playground** for client-side encryption and PWA patterns.
 
 ---
 
-## 📈 Adaptive Forecasting Engine
+## ✨ Key Features
 
-The forecast goes beyond a simple daily average. Three lightweight statistical tools work together in O(n) time, computed fresh on every dashboard load:
-
-| Layer | Technique | Purpose |
-|-------|-----------|---------|
-| **Outlier Removal** | IQR (1.5× interquartile range) | Filters large one-off expenses (furniture, emergency repairs) from daily spending totals |
-| **Spending Rate** | EWMA (α = 0.3) | Recency-biased moving average that adapts to habit changes within 3–5 days |
-| **Fixed Bills** | Historical median | Detects unpaid recurring obligations (utilities, subscriptions) and projects them from past transactions |
-
-**How it works:**
-1. Variable expenses are bucketed by day; zero-spend days are excluded before outlier filtering
-2. IQR removes statistical outliers from active-day totals
-3. EWMA computes a weighted daily rate — recent days dominate, old habits fade
-4. Fixed categories are checked against current month; unpaid ones are projected at their historical median
-5. Projected balance = current balance − (EWMA daily rate × remaining days) − pending fixed bills
-
-No ML. No external libraries. Just math that runs in microseconds.
+* 🔒 **End-to-end encryption** — AES-GCM with PBKDF2 key derivation
+* 📱 **Installable PWA** — works offline like a native app
+* 📊 **Adaptive forecasting** — EWMA + IQR outlier filtering + fixed-bill detection
+* 🗂️ **Local database** — IndexedDB via Dexie.js
+* 🌙 **Dark UI** — minimal, clean, focus-driven interface
+* ⚡ **Fast & lightweight** — optimized Vite build
+* 🔐 **Zero-knowledge privacy** — your data never phones home
 
 ---
 
-## 🛡️ Security
+## 🧠 Architecture Highlights
 
-Money Vault is designed with privacy and security as core principles.
-
-| Feature            | Description                                       |
-| ------------------ | ------------------------------------------------- |
-| PBKDF2             | 200,000 iterations for secure key derivation      |
-| AES-GCM            | Modern authenticated encryption                   |
-| Local-Only Storage | No cloud sync or external database                |
-| Client-Side Crypto | Encryption/decryption happens entirely in-browser |
-| Zero Tracking      | No analytics, telemetry, or third-party trackers  |
-
----
-
-## 🚀 Quick Start
-
-### 1. Clone Repository
-
-```bash
-git clone https://github.com/your-username/money-vault.git
-cd money-vault
-```
-
-### 2. Install Dependencies
-
-```bash
-npm install
-```
-
-### 3. Start Development Server
-
-```bash
-npm run dev
-```
-
-### 4. Build Production Version
-
-```bash
-npm run build
-```
-
-### 5. Preview Production Build
-
-```bash
-npm run preview
-```
+- **Client-side encryption** — Web Crypto API, keys never transmitted
+- **Offline-first architecture** — service workers + cache strategies
+- **Modular forecasting engine** — pure math, no ML dependencies
+- **Component-based UI** — reusable React components
+- **Structured local persistence** — Dexie.js over IndexedDB
 
 ---
 
@@ -119,86 +52,122 @@ npm run preview
 
 ```bash
 money-vault/
+│
+├── index.html
+├── LICENSE
+├── README.md
+├── package.json
+├── vite.config.js
+│
 ├── public/                 # Static assets + PWA manifest
+│
 ├── src/
 │   ├── components/         # UI components
 │   ├── crypto/             # Encryption utilities
 │   ├── db/                 # IndexedDB layer (Dexie.js)
 │   ├── hooks/              # Custom React hooks
 │   ├── styles/             # Global styling
-│   ├── utils/              # Forecasting + helpers
+│   └── utils/              # Forecasting + helpers
 │   └── main.jsx
-├── package.json
-└── vite.config.js
 ```
 
 ---
 
-## 🧱 Tech Stack
+## 📈 Adaptive Forecasting Engine
 
-| Category   | Technology                      |
-| ---------- | ------------------------------- |
-| Frontend   | React + Vite                    |
-| Database   | Dexie.js + IndexedDB            |
-| Encryption | Web Crypto API                  |
-| Styling    | CSS3 / Modern Layout            |
-| PWA        | Service Workers + Manifest      |
-| Deployment | GitHub Pages / Cloudflare Pages |
+The forecast goes beyond a simple daily average. Three lightweight statistical tools work together in **O(n) time**:
+
+| Layer | Technique | Purpose |
+|-------|-----------|---------|
+| **Outlier Removal** | IQR (1.5× interquartile range) | Filters large one-off expenses |
+| **Spending Rate** | EWMA (α = 0.3) | Recency-biased moving average |
+| **Fixed Bills** | Historical median | Projects unpaid recurring obligations |
+
+> 🧠 No ML. No external libraries. Just math that runs in microseconds.
 
 ---
 
-## 📦 Scripts
+## 🛡️ Security
+
+| Feature | Description |
+|---------|-------------|
+| PBKDF2 | 200,000 iterations for secure key derivation |
+| AES-GCM | Modern authenticated encryption |
+| Local-Only Storage | No cloud sync or external database |
+| Client-Side Crypto | Encryption/decryption in-browser only |
+| Zero Tracking | No analytics, telemetry, or third parties |
+
+---
+
+## ⚙️ Getting Started
+
+### 1. Clone the repository
 
 ```bash
-# Development
+git clone https://github.com/your-username/money-vault.git
+cd money-vault
+```
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+### 3. Run development server
+
+```bash
 npm run dev
+```
 
-# Production build
+### 4. Build for production
+
+```bash
 npm run build
+```
 
-# Preview production build
+### 5. Preview production build
+
+```bash
 npm run preview
-
-# Lint project
-npm run lint
 ```
 
 ---
 
-## 🌍 Deployment
+## 🧪 Tech Stack
 
-### GitHub Pages
-
-1. Push project to GitHub
-2. Open repository settings
-3. Enable GitHub Pages
-4. Select:
-
-   * `gh-pages` branch
-     or
-   * `/docs` folder
-
-```bash
-npm run build
-```
-
-3. Set output directory:
-
-```bash
-dist
-```
+| Category | Technology |
+|----------|------------|
+| Frontend | React 19 + Vite 7 |
+| Database | Dexie.js + IndexedDB |
+| Encryption | Web Crypto API (AES-GCM, PBKDF2) |
+| Styling | CSS3 / Modern Layout |
+| PWA | Service Workers + Manifest |
+| Forecasting | EWMA + IQR (pure math) |
 
 ---
 
-## 🗺️ Roadmap
+## 🎯 Development Focus
 
-* [ ] Multi-wallet support
-* [ ] CSV export/import
-* [ ] Budget goals
-* [ ] Charts & analytics
-* [ ] Recurring transactions
-* [ ] Biometric unlock support
-* [ ] Optional encrypted backup files
+This project explores:
+
+- **Client-side encryption** patterns for sensitive data
+- **Offline-first PWA** architecture
+- **Statistical forecasting** without external APIs
+- **Zero-tracking** privacy-first design
+- **Local-first** data persistence strategies
+
+---
+
+## 📈 Roadmap
+
+- [ ] Multi-wallet support
+- [ ] CSV export/import
+- [ ] Budget goals & alerts
+- [ ] Charts & spending analytics
+- [ ] Recurring transaction automation
+- [ ] Biometric unlock (WebAuthn)
+- [ ] Optional encrypted backup files
 
 ---
 
@@ -207,22 +176,38 @@ dist
 Pull requests, issues, and feature suggestions are welcome.
 
 ```bash
-# Fork repository
-# Create feature branch
+# Fork the repository
+# Create a feature branch
 git checkout -b feature/amazing-feature
+
+# Commit your changes
+git commit -m 'Add amazing feature'
+
+# Push to the branch
+git push origin feature/amazing-feature
+
+# Open a Pull Request
 ```
 
 ---
 
-## 📄 License
+## 📜 License
 
-Licensed under the MIT License.
-See the `LICENSE` file for more information.
+This project is licensed under the **MIT License**.
+See the `LICENSE` file for details.
+
+---
+
+## 📄 Copyright
+
+© 2026 Katsukii Neko. All rights reserved.
 
 ---
 
 <div align="center">
 
-### 🔐 Privacy First • Offline First • User First
+### 🔒 Privacy First • 📴 Offline First • 🔐 User First
 
+*Your money. Your device. Your control.*
+> *Design. Code. Experience.*
 </div>

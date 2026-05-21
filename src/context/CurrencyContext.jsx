@@ -5,10 +5,20 @@ const CurrencyContext = createContext();
 export const useCurrency = () => useContext(CurrencyContext);
 
 export const CurrencyProvider = ({ children }) => {
-  const [currency, setCurrency] = useState('USD');
+  const [currency, setCurrency] = useState(() => {
+    try {
+      return localStorage.getItem('money-vault-currency') || 'USD';
+    } catch {
+      return 'USD';
+    }
+  });
 
   const toggleCurrency = () => {
-    setCurrency(prev => prev === 'USD' ? 'VND' : 'USD');
+    setCurrency(prev => {
+      const next = prev === 'USD' ? 'VND' : 'USD';
+      try { localStorage.setItem('money-vault-currency', next); } catch {}
+      return next;
+    });
   };
 
   const formatCurrency = (amount) => {
