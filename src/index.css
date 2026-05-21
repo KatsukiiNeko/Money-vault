@@ -520,11 +520,82 @@ body {
   min-width: 0;
 }
 
+.transaction-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
 .transaction-amount {
   font-weight: 600;
   font-size: 1.1rem;
   white-space: nowrap;
-  flex-shrink: 0;
+}
+
+.transaction-delete-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted-dark);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  min-height: 36px;
+  opacity: 0;
+}
+
+.transaction-item:hover .transaction-delete-btn {
+  opacity: 1;
+}
+
+.transaction-delete-btn:hover {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.1);
+}
+
+.transaction-item.deleting {
+  background: rgba(248, 113, 113, 0.05);
+  border-color: rgba(248, 113, 113, 0.2);
+}
+
+.delete-confirm-inline {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.delete-confirm-btn-inline {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
+}
+
+.delete-confirm-btn-inline.confirm {
+  color: #4ade80;
+}
+
+.delete-confirm-btn-inline.confirm:hover {
+  background: rgba(74, 222, 128, 0.15);
+}
+
+.delete-confirm-btn-inline.cancel {
+  color: #f87171;
+}
+
+.delete-confirm-btn-inline.cancel:hover {
+  background: rgba(248, 113, 113, 0.15);
 }
 
 .transaction-amount.expense {
@@ -1304,6 +1375,17 @@ body {
 
   .transaction-amount {
     font-size: 0.95rem;
+  }
+
+  .transaction-delete-btn {
+    opacity: 1;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .delete-confirm-btn-inline {
+    min-width: 40px;
+    min-height: 40px;
   }
 
   .transaction-left {

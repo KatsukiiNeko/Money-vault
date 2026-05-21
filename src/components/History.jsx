@@ -9,6 +9,7 @@ const History = () => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [deletingId, setDeletingId] = useState(null);
   const { formatCurrency } = useCurrency();
   const { t, language } = useLanguage();
 
@@ -44,6 +45,16 @@ const History = () => {
     fetchTransactions();
   }, [t]);
 
+  const handleDelete = async (id) => {
+    try {
+      await db.transactions.delete(id);
+      setTransactions(prev => prev.filter(tx => tx.id !== id));
+      setDeletingId(null);
+    } catch {
+      setError(t('history.errors.deleteFailed'));
+    }
+  };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const locale = language === 'EN' ? 'en-US' : 'vi-VN';
@@ -73,14 +84,14 @@ const History = () => {
       ) : (
         <div className="transactions-list">
           {transactions.map((transaction) => (
-            <div key={transaction.id} className="transaction-item">
+            <div key={transaction.id} className={`transaction-item ${deletingId === transaction.id ? 'deleting' : ''}`}>
               <div className="transaction-left">
                 <div className="transaction-date">
                   {formatDate(transaction.date)}
                 </div>
                 <div className="transaction-info">
                   <div className="transaction-category">
-                    {categoryValueToKey[transaction.category] ? t(`cat.${categoryValueToKey[transaction.category]}`) : transaction.category}
+                    {categoryValueToKey[transaction.category] ? t(categoryValueToKey[transaction.category]) : transaction.category}
                   </div>
                   {transaction.note && (
                     <div className="transaction-note">
@@ -89,9 +100,47 @@ const History = () => {
                   )}
                 </div>
               </div>
-              <div className={`transaction-amount ${transaction.type}`}>
-                {transaction.type === 'expense' ? '-' : '+'}
-                {formatCurrency(transaction.amount)}
+              <div className="transaction-right">
+                <div className={`transaction-amount ${transaction.type}`}>
+                  {transaction.type === 'expense' ? '-' : '+'}
+                  {formatCurrency(transaction.amount)}
+                </div>
+                {deletingId === transaction.id ? (
+                  <div className="delete-confirm-inline">
+                    <button
+                      className="delete-confirm-btn-inline confirm"
+                      onClick={() => handleDelete(transaction.id)}
+                      title={t('history.deleteConfirm')}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    </button>
+                    <button
+                      className="delete-confirm-btn-inline cancel"
+                      onClick={() => setDeletingId(null)}
+                      title={t('accounts.cancel')}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    className="transaction-delete-btn"
+                    onClick={() => setDeletingId(transaction.id)}
+                    title={t('history.delete')}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                      <line x1="10" y1="11" x2="10" y2="17" />
+                      <line x1="14" y1="11" x2="14" y2="17" />
+                    </svg>
+                  </button>
+                )}
               </div>
             </div>
           ))}

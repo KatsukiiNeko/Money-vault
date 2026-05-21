@@ -249,6 +249,18 @@ export const translations = {
     en: 'Failed to load transactions',
     vi: 'Tải giao dịch thất bại'
   },
+  'history.errors.deleteFailed': {
+    en: 'Failed to delete transaction',
+    vi: 'Xóa giao dịch thất bại'
+  },
+  'history.delete': {
+    en: 'Delete transaction',
+    vi: 'Xóa giao dịch'
+  },
+  'history.deleteConfirm': {
+    en: 'Confirm delete',
+    vi: 'Xác nhận xóa'
+  },
 
   // ── Forecast ──
   'forecast.title': {
