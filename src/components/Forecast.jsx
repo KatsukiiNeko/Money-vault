@@ -50,6 +50,12 @@ const Forecast = ({ currentBalance = 0 }) => {
     return <div className="forecast">{t('forecast.noData')}</div>;
   }
 
+  const remainingDays = (() => {
+    const now = new Date();
+    const totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    return totalDays - now.getDate();
+  })();
+
   return (
     <div className="forecast-container">
       <h2>{t('forecast.title')}</h2>
@@ -60,16 +66,40 @@ const Forecast = ({ currentBalance = 0 }) => {
         </div>
         <div className="forecast-item">
           <span className="label">{t('forecast.projectedBalance')}</span>
-          <span className="value">{formatCurrency(forecastData.projectedBalance)}</span>
+          <span className="value">{forecastData.projectedBalance !== undefined ? formatCurrency(forecastData.projectedBalance) : t('forecast.noData')}</span>
         </div>
         <div className="forecast-item">
           <span className="label">{t('forecast.dailyAverage')}</span>
-          <span className="value">{formatCurrency(forecastData.dailySpending)}{t('forecast.perDay')}</span>
+          <span className="value">{forecastData.dailySpending !== undefined ? formatCurrency(forecastData.dailySpending) + t('forecast.perDay') : t('forecast.noData')}</span>
         </div>
         <div className="forecast-item">
           <span className="label">{t('forecast.daysRemaining')}</span>
-          <span className="value">{forecastData.remainingDays} {t('forecast.days')}</span>
+          <span className="value">{remainingDays} {t('forecast.days')}</span>
         </div>
+        {forecastData.typicalMonthlySpending > 0 ? (
+          <>
+            <div className={`forecast-item forecast-status ${forecastData.isOverspending ? 'overspending' : 'on-track'}`}>
+              <span className="label">{t('forecast.spendingPace')}</span>
+              <span className="value">
+                {forecastData.spendingPacePercent !== undefined ? forecastData.spendingPacePercent + '% — ' : ''}
+                {forecastData.isOverspending ? t('forecast.overspending') : t('forecast.onTrack')}
+              </span>
+            </div>
+            <div className="forecast-item">
+              <span className="label">{t('forecast.typicalSpending')}</span>
+              <span className="value">{formatCurrency(forecastData.typicalMonthlySpending)}</span>
+            </div>
+            <div className="forecast-item">
+              <span className="label">{t('forecast.projectedSpending')}</span>
+              <span className="value">{forecastData.projectedMonthlySpending !== undefined ? formatCurrency(forecastData.projectedMonthlySpending) : t('forecast.noData')}</span>
+            </div>
+          </>
+        ) : (
+          <div className="forecast-item">
+            <span className="label">{t('forecast.spendingPace')}</span>
+            <span className="value forecast-na">{t('forecast.noBaseline')}</span>
+          </div>
+        )}
       </div>
     </div>
   );

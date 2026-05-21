@@ -299,6 +299,30 @@ export const translations = {
     en: 'days',
     vi: 'ngày'
   },
+  'forecast.overspending': {
+    en: 'Overspending',
+    vi: 'Chi tiêu quá mức'
+  },
+  'forecast.onTrack': {
+    en: 'On Track',
+    vi: 'Đúng kế hoạch'
+  },
+  'forecast.spendingPace': {
+    en: 'Spending Pace:',
+    vi: 'Tốc độ chi tiêu:'
+  },
+  'forecast.typicalSpending': {
+    en: 'Typical Monthly:',
+    vi: 'Trung bình tháng:'
+  },
+  'forecast.projectedSpending': {
+    en: 'Projected This Month:',
+    vi: 'Dự kiến tháng này:'
+  },
+  'forecast.noBaseline': {
+    en: 'N/A — not enough history',
+    vi: 'N/A — chưa đủ dữ liệu'
+  },
 
   // ── PasswordManager ──
   'password.toggleLabel': {
