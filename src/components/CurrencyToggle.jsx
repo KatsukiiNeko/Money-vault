@@ -11,7 +11,7 @@ const CurrencyToggle = () => {
           <path fill="#fff" d="M0 37h640v37H0zm0 73h640v37H0zm0 73h640v37H0zm0 73h640v37H0zm0 73h640v37H0zm0 73h640v37H0z"/>
           <path fill="#192f5d" d="M0 0h260v260H0z"/>
         </svg>
-        <span className="currency-label">$</span>
+        <span className="currency-label">USD</span>
       </span>
       <span className="toggle-divider">/</span>
       <span className={`flag-option ${currency === 'VND' ? 'active' : ''}`}>

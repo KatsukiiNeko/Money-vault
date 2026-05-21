@@ -79,7 +79,7 @@ function App() {
   if (isLocked) {
     return (
       <div className="app">
-        <LockScreen accountId={accountId} onUnlock={handleUnlock} />
+        <LockScreen accountId={accountId} onUnlock={handleUnlock} onBack={handleSwitchAccount} />
         <footer className="footer">
           <span>&copy; {t('app.copyright')}</span>
         </footer>

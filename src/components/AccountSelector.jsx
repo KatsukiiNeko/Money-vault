@@ -3,7 +3,6 @@ import { db } from '../db/db';
 import { deriveKey, verifyPassword, setActiveAccountId } from '../crypto/crypto';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageToggle from './LanguageToggle';
-import CurrencyToggle from './CurrencyToggle';
 
 const AccountSelector = ({ onAccountSelected }) => {
   const [accounts, setAccounts] = useState([]);
@@ -129,7 +128,6 @@ const AccountSelector = ({ onAccountSelected }) => {
       <div className="account-selector-container">
         <div className="account-selector-toggle">
           <LanguageToggle />
-          <CurrencyToggle />
         </div>
         <h1>{t('accounts.title')}</h1>
         <h2>{t('accounts.selectPrompt')}</h2>

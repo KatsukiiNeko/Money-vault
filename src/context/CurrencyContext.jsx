@@ -16,10 +16,7 @@ export const CurrencyProvider = ({ children }) => {
       const vndAmount = amount * 1000;
       return `${Math.round(vndAmount).toLocaleString('en-US')} VND`;
     }
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
+    return `${new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount)} USD`;
   };
 
   return (

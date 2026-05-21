@@ -15,6 +15,8 @@ const Dashboard = ({ onLogout, onSwitchAccount }) => {
   const [balance, setBalance] = useState({ income: 0, expenses: 0, balance: 0 });
   const [refreshKey, setRefreshKey] = useState(0);
   const [accountName, setAccountName] = useState('');
+  const [editingName, setEditingName] = useState(false);
+  const [editValue, setEditValue] = useState('');
   const { formatCurrency } = useCurrency();
   const { t } = useLanguage();
 
@@ -63,6 +65,24 @@ const Dashboard = ({ onLogout, onSwitchAccount }) => {
 
     calculateBalance();
   }, [refreshKey, accountId]);
+
+  const handleRename = async () => {
+    const trimmed = editValue.trim();
+    if (!trimmed || trimmed === accountName) {
+      setEditingName(false);
+      return;
+    }
+    try {
+      await db.accounts.update(accountId, { name: trimmed });
+      setAccountName(trimmed);
+    } catch { /* rename failed */ }
+    setEditingName(false);
+  };
+
+  const startEditing = () => {
+    setEditValue(accountName);
+    setEditingName(true);
+  };
 
   const handleTransactionAdded = () => {
     setRefreshKey(k => k + 1);
@@ -170,7 +190,30 @@ const Dashboard = ({ onLogout, onSwitchAccount }) => {
       <div className="dashboard-header">
         <div className="dashboard-title-row">
           <h1>{t('dashboard.title')}</h1>
-          <span className="account-name-badge">{accountName}</span>
+          {editingName ? (
+            <div className="account-edit-inline">
+              <input
+                className="account-edit-input"
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleRename();
+                  if (e.key === 'Escape') setEditingName(false);
+                }}
+                onBlur={handleRename}
+                autoFocus
+                maxLength={50}
+              />
+            </div>
+          ) : (
+            <button className="account-name-badge" onClick={startEditing}>
+              <span>{accountName}</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+            </button>
+          )}
         </div>
         <div className="header-controls">
           <LanguageToggle />
