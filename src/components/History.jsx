@@ -30,8 +30,8 @@ const History = () => {
             const tx = await decryptTransactionFromStorage(enc, key);
             tx.id = enc.id;
             decrypted.push(tx);
-          } catch (err) {
-            console.warn('[MoneyVault] Decryption failed for transaction', enc.id, err);
+          } catch {
+            // Skip undecryptable transactions
           }
         }
         setTransactions(decrypted);

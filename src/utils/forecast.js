@@ -222,17 +222,6 @@ export function calculateForecast(transactions, currentBalance, currentDate = ne
   const hasEnoughData = historicalTypical > 0 && nonZeroTotals.length >= 3;
   const typicalMonthlySpending = hasEnoughData ? historicalTypical : (historicalTypical > 0 ? historicalTypical : 0);
 
-  console.log('[Forecast]', {
-    nonZeroDays: nonZeroTotals.length,
-    historicalTypical,
-    hasEnoughData,
-    monthlyVariableTotals,
-    currentMonthTxns: currentMonthTxns.length,
-    allTxns: transactions.length,
-    currentDay,
-    month
-  });
-
   // ── 6. Overspending detection ──
   const projectedMonthlySpending = dailySpending * totalDays;
   const spendingPacePercent = typicalMonthlySpending > 0

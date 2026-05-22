@@ -51,8 +51,8 @@ export const translations = {
     vi: 'Sai mật khẩu'
   },
   'lock.errors.tooManyAttempts': {
-    en: 'Too many failed attempts. Locked for 30 seconds.',
-    vi: 'Quá số lần sai mật khẩu, bị khóa trong 30 giây'
+    en: 'Too many failed attempts. Account temporarily locked.',
+    vi: 'Quá số lần sai mật khẩu. Tài khoản tạm thời bị khóa.'
   },
   'lock.errors.unlockFailed': {
     en: 'Failed to unlock. Please try again.',
@@ -393,6 +393,10 @@ export const translations = {
     en: 'Failed to change password: ',
     vi: 'Đổi mật khẩu thất bại: '
   },
+  'password.errors.cooldown': {
+    en: 'Too many attempts. Wait {seconds}s before trying again.',
+    vi: 'Quá số lần thử. Đợi {seconds}s trước khi thử lại.'
+  },
 
   // ── BackupRestore ──
   'backup.title': {
@@ -436,12 +440,72 @@ export const translations = {
     vi: 'Bắt đầu khôi phục...'
   },
   'backup.restoreSuccess': {
-    en: 'Restore completed successfully!',
-    vi: 'Khôi phục thành công!'
+    en: 'Restore completed! {count} transactions restored.',
+    vi: 'Khôi phục thành công! {count} giao dịch đã được khôi phục.'
   },
   'backup.failedRestorePrefix': {
     en: 'Restore failed: ',
     vi: 'Khôi phục thất bại: '
+  },
+  'backup.secureBackupBtn': {
+    en: 'Secure Backup',
+    vi: 'Sao lưu bảo mật'
+  },
+  'backup.secureBackupTitle': {
+    en: 'Create Secure Backup',
+    vi: 'Tạo bản sao lưu bảo mật'
+  },
+  'backup.secureRestoreTitle': {
+    en: 'Restore Secure Backup',
+    vi: 'Khôi phục bản sao lưu bảo mật'
+  },
+  'backup.enterPassword': {
+    en: 'Backup Password',
+    vi: 'Mật khẩu sao lưu'
+  },
+  'backup.confirmPassword': {
+    en: 'Confirm Password',
+    vi: 'Xác nhận mật khẩu'
+  },
+  'backup.passwordPlaceholder': {
+    en: 'Enter backup password',
+    vi: 'Nhập mật khẩu sao lưu'
+  },
+  'backup.confirmPlaceholder': {
+    en: 'Re-enter password',
+    vi: 'Nhập lại mật khẩu'
+  },
+  'backup.passwordTooShort': {
+    en: 'Password must be at least 4 characters',
+    vi: 'Mật khẩu phải có ít nhất 4 ký tự'
+  },
+  'backup.passwordMismatch': {
+    en: 'Passwords do not match',
+    vi: 'Mật khẩu không khớp'
+  },
+  'backup.createBtn': {
+    en: 'Create Backup',
+    vi: 'Tạo bản sao lưu'
+  },
+  'backup.processing': {
+    en: 'Processing...',
+    vi: 'Đang xử lý...'
+  },
+  'backup.restoring': {
+    en: 'Restoring...',
+    vi: 'Đang khôi phục...'
+  },
+  'backup.cooldown': {
+    en: 'Too many attempts. Wait {seconds}s.',
+    vi: 'Quá số lần thử. Đợi {seconds}s.'
+  },
+  'backup.accountName': {
+    en: 'Account',
+    vi: 'Tài khoản'
+  },
+  'backup.backupDate': {
+    en: 'Backup Date',
+    vi: 'Ngày sao lưu'
   },
 
   // ── Account Selector ──
@@ -530,6 +594,14 @@ export const translations = {
   'lock.resetConfirm': {
     en: 'This will permanently delete all data for this account. Continue?',
     vi: 'Thao tác này sẽ xóa vĩnh viễn tất cả dữ liệu của tài khoản này. Tiếp tục?'
+  },
+  'lock.resetConfirmType': {
+    en: 'Type "{name}" to confirm permanent deletion:',
+    vi: 'Nhập "{name}" để xác nhận xóa vĩnh viễn:'
+  },
+  'lock.resetNameMismatch': {
+    en: 'Account name does not match. Type the exact name shown.',
+    vi: 'Tên tài khoản không khớp. Nhập chính xác tên hiển thị.'
   },
 
   // ── Dashboard additions ──

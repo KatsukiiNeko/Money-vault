@@ -1,9 +1,11 @@
 // Service worker for Money Vault PWA
-const CACHE_NAME = 'money-vault-cache-v2';
+const CACHE_NAME = 'money-vault-cache-v3';
 const FILES_TO_CACHE = [
   '/',
   '/index.html',
-  '/manifest.json'
+  '/manifest.json',
+  '/favicon.svg',
+  '/icons.svg'
 ];
 
 // Install event - cache static assets, skip waiting

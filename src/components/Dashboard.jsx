@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { db } from '../db/db';
-import { getSessionKey, decryptTransactionFromStorage, encryptData, decryptData, generateIV, getActiveAccountId } from '../crypto/crypto';
+import { getSessionKey, decryptTransactionFromStorage, encryptData, decryptData, generateIV, getActiveAccountId, createSecureBackup, restoreSecureBackup, parseSecureBackup } from '../crypto/crypto';
 import TransactionForm from './TransactionForm';
 import History from './History';
 import Forecast from './Forecast';
@@ -51,8 +51,8 @@ const Dashboard = ({ onLogout, onSwitchAccount }) => {
             } else {
               totalExpenses += tx.amount;
             }
-          } catch (err) {
-            console.warn('[MoneyVault] Decryption failed for transaction', enc.id, err);
+          } catch {
+            // Skip undecryptable transactions
           }
         }
 
@@ -89,16 +89,26 @@ const Dashboard = ({ onLogout, onSwitchAccount }) => {
     setRefreshKey(k => k + 1);
   };
 
+  const downloadBackup = (backup, suffix) => {
+    const blob = new Blob([JSON.stringify(backup)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `money-vault-${suffix}-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const handleBackup = async () => {
     const key = getSessionKey();
     if (!key) throw new Error(t('dashboard.sessionExpired'));
 
     const allEncrypted = await db.transactions.where('accountId').equals(accountId).toArray();
-    const saltSetting = await db.settings.get('salt:' + accountId);
 
     const backupData = {
       transactions: allEncrypted,
-      salt: saltSetting ? saltSetting.value : null,
       timestamp: new Date().toISOString(),
       version: 2
     };
@@ -114,21 +124,15 @@ const Dashboard = ({ onLogout, onSwitchAccount }) => {
       algorithm: 'AES-GCM-256'
     };
 
-    const blob = new Blob([JSON.stringify(backup)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `money-vault-backup-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    downloadBackup(backup, 'backup');
   };
 
-  const handleRestore = async () => {
-    const key = getSessionKey();
-    if (!key) throw new Error(t('dashboard.sessionExpired'));
+  const handleSecureBackup = async (password) => {
+    const backup = await createSecureBackup(password, accountId);
+    downloadBackup(backup, 'secure-backup');
+  };
 
+  const readBackupFile = () => {
     return new Promise((resolve, reject) => {
       const input = document.createElement('input');
       input.type = 'file';
@@ -136,54 +140,72 @@ const Dashboard = ({ onLogout, onSwitchAccount }) => {
       input.onchange = async (e) => {
         const file = e.target.files[0];
         if (!file) { reject(new Error(t('dashboard.noFileSelected'))); return; }
-
         try {
           const text = await file.text();
           const backup = JSON.parse(text);
-
-          if (!backup.iv || !backup.ciphertext) {
-            throw new Error(t('dashboard.invalidBackupFormat'));
-          }
-
-          const iv = new Uint8Array(backup.iv);
-          const ciphertext = new Uint8Array(backup.ciphertext);
-          const decrypted = await decryptData(ciphertext, key, iv);
-          const backupData = JSON.parse(decrypted);
-
-          if (!backupData.transactions || !Array.isArray(backupData.transactions)) {
-            throw new Error(t('dashboard.invalidBackupData'));
-          }
-
-          for (const tx of backupData.transactions) {
-            if (!tx.iv || !tx.data) {
-              if (!tx.date || !tx.type || tx.amount === undefined) {
-                throw new Error(t('dashboard.invalidBackupData'));
-              }
-            }
-          }
-
-          await db.transactions.where('accountId').equals(accountId).delete();
-          const transactionsWithAccount = backupData.transactions.map(tx => ({
-            ...tx,
-            accountId
-          }));
-          await db.transactions.bulkAdd(transactionsWithAccount);
-
-          if (backupData.salt) {
-            const existingSalt = await db.settings.get('salt:' + accountId);
-            if (!existingSalt) {
-              await db.settings.put({ key: 'salt:' + accountId, value: backupData.salt });
-            }
-          }
-
-          setRefreshKey(k => k + 1);
-          resolve();
-        } catch (err) {
-          reject(new Error(t('dashboard.restoreFailed') + err.message));
+          resolve(backup);
+        } catch {
+          reject(new Error(t('dashboard.invalidBackupFormat')));
         }
       };
       input.click();
     });
+  };
+
+  const handleRestore = async () => {
+    const key = getSessionKey();
+    if (!key) throw new Error(t('dashboard.sessionExpired'));
+
+    const backup = await readBackupFile();
+
+    // Auto-detect format
+    if (backup.version === 3) {
+      // v3 secure backup — needs password, return metadata for UI to prompt
+      const meta = await parseSecureBackup(backup);
+      return { format: 'secure', meta, backup };
+    }
+
+    if (backup.version === 2 || !backup.version) {
+      // v2 quick backup — use session key
+      if (!backup.iv || !backup.ciphertext) {
+        throw new Error(t('dashboard.invalidBackupFormat'));
+      }
+
+      const iv = new Uint8Array(backup.iv);
+      const ciphertext = new Uint8Array(backup.ciphertext);
+      const decrypted = await decryptData(ciphertext, key, iv);
+      const backupData = JSON.parse(decrypted);
+
+      if (!backupData.transactions || !Array.isArray(backupData.transactions)) {
+        throw new Error(t('dashboard.invalidBackupData'));
+      }
+
+      const transactionsWithAccount = backupData.transactions.map(tx => ({
+        ...tx,
+        accountId
+      }));
+
+      await db.transaction('rw', db.transactions, async () => {
+        await db.transactions.where('accountId').equals(accountId).delete();
+        await db.transactions.bulkAdd(transactionsWithAccount);
+      });
+
+      setRefreshKey(k => k + 1);
+      return { format: 'quick', count: transactionsWithAccount.length };
+    }
+
+    if (backup.version === 1) {
+      // v1 legacy — needs password
+      return { format: 'legacy', backup };
+    }
+
+    throw new Error(t('dashboard.invalidBackupFormat'));
+  };
+
+  const handleSecureRestore = async (backup, password) => {
+    const count = await restoreSecureBackup(backup, password, accountId);
+    setRefreshKey(k => k + 1);
+    return count;
   };
 
   return (
@@ -248,7 +270,7 @@ const Dashboard = ({ onLogout, onSwitchAccount }) => {
         <div className="left-column">
           <TransactionForm onTransactionAdded={handleTransactionAdded} />
           <PasswordManager />
-          <BackupRestore onBackup={handleBackup} onRestore={handleRestore} />
+          <BackupRestore onBackup={handleBackup} onSecureBackup={handleSecureBackup} onRestore={handleRestore} onSecureRestore={handleSecureRestore} />
         </div>
         <div className="right-column">
           <Forecast currentBalance={balance.balance} />

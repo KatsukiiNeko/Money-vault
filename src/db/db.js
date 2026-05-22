@@ -49,4 +49,10 @@ db.version(3).stores({
   });
 });
 
+db.version(4).stores({
+  accounts: 'id,name,createdAt',
+  transactions: '++id,accountId,date,type,category',
+  settings: 'key,value'
+});
+
 export default db;

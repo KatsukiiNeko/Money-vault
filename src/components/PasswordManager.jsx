@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { deriveKey, generateSalt, setSessionKey, createVerificationToken, verifyPassword, encryptTransactionForStorage, decryptTransactionFromStorage, getActiveAccountId } from '../crypto/crypto';
 import { db } from '../db/db';
 import { useLanguage } from '../context/LanguageContext';
@@ -11,12 +11,37 @@ const PasswordManager = ({ onPasswordChange }) => {
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [changeAttempts, setChangeAttempts] = useState(0);
+  const [changeCooldown, setChangeCooldown] = useState(0);
+  const cooldownRef = useRef(null);
   const { t } = useLanguage();
+
+  useEffect(() => {
+    if (changeCooldown > 0) {
+      cooldownRef.current = setInterval(() => {
+        setChangeCooldown(prev => {
+          if (prev <= 1) {
+            clearInterval(cooldownRef.current);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (cooldownRef.current) clearInterval(cooldownRef.current);
+    };
+  }, [changeCooldown]);
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
+
+    if (changeCooldown > 0) {
+      setError(t('password.errors.cooldown', { seconds: changeCooldown }));
+      return;
+    }
 
     if (!currentPassword || !newPassword || !confirmPassword) {
       setError(t('password.errors.required'));
@@ -51,6 +76,12 @@ const PasswordManager = ({ onPasswordChange }) => {
       const isValid = await verifyPassword(oldKey, token.value);
 
       if (!isValid) {
+        const newAttempts = changeAttempts + 1;
+        setChangeAttempts(newAttempts);
+        if (newAttempts >= 3) {
+          setChangeCooldown(30);
+          setChangeAttempts(0);
+        }
         setError(t('password.errors.incorrect'));
         setIsLoading(false);
         return;
@@ -62,9 +93,8 @@ const PasswordManager = ({ onPasswordChange }) => {
         try {
           const tx = await decryptTransactionFromStorage(enc, oldKey);
           decryptedTransactions.push(tx);
-        } catch (err) {
-          console.warn('[MoneyVault] Decryption failed during password change', enc.id, err);
-          throw new Error(t('password.errors.decryptFailed'), { cause: err });
+        } catch {
+          throw new Error(t('password.errors.decryptFailed'));
         }
       }
 
@@ -93,6 +123,7 @@ const PasswordManager = ({ onPasswordChange }) => {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
+      setChangeAttempts(0);
       if (onPasswordChange) onPasswordChange();
     } catch (err) {
       setError(err.message || t('password.errors.changeFailed'));
@@ -173,7 +204,7 @@ const PasswordManager = ({ onPasswordChange }) => {
           {error && <div className="password-alert error">{error}</div>}
           {success && <div className="password-alert success">{success}</div>}
 
-          <button type="submit" className="password-submit-btn" disabled={isLoading}>
+          <button type="submit" className="password-submit-btn" disabled={isLoading || changeCooldown > 0}>
             {isLoading ? t('password.reEncrypting') : t('password.update')}
           </button>
         </form>

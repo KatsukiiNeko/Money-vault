@@ -1,6 +1,7 @@
 import { db } from '../db/db';
 
 const VERIFICATION_PLAINTEXT = 'MONEYVAULT_VERIFY_v1';
+export const PBKDF2_ITERATIONS = 600000;
 
 const _sessionKeys = {};
 let _activeAccountId = null;
@@ -39,7 +40,7 @@ export function setActiveAccountId(id) {
   _activeAccountId = id;
 }
 
-export async function deriveKey(password, salt, iterations = 200000) {
+export async function deriveKey(password, salt, iterations = PBKDF2_ITERATIONS) {
   const enc = new TextEncoder();
   const passwordBuffer = enc.encode(password);
 
@@ -127,15 +128,10 @@ export async function decryptTransactionFromStorage(encryptedTransaction, key) {
   if (!encryptedTransaction.iv || !encryptedTransaction.data) {
     return { ...encryptedTransaction };
   }
-  try {
-    const iv = new Uint8Array(encryptedTransaction.iv);
-    const data = new Uint8Array(encryptedTransaction.data);
-    const jsonString = await decryptData(data, key, iv);
-    return JSON.parse(jsonString);
-  } catch (err) {
-    console.warn('[MoneyVault] Decryption failed for transaction', encryptedTransaction.id, err);
-    throw err;
-  }
+  const iv = new Uint8Array(encryptedTransaction.iv);
+  const data = new Uint8Array(encryptedTransaction.data);
+  const jsonString = await decryptData(data, key, iv);
+  return JSON.parse(jsonString);
 }
 
 export async function createBackup(password) {
@@ -177,6 +173,161 @@ export async function restoreBackup(backup, password) {
   return parsed;
 }
 
+export function validateTransactionData(tx) {
+  if (!tx || typeof tx !== 'object') return false;
+  if (!tx.date || typeof tx.date !== 'string') return false;
+  if (tx.type !== 'income' && tx.type !== 'expense') return false;
+  if (tx.amount === undefined || typeof tx.amount !== 'number' || !isFinite(tx.amount) || tx.amount <= 0 || tx.amount > 999999999999) return false;
+  if (!tx.category || typeof tx.category !== 'string') return false;
+  if (tx.note && typeof tx.note === 'string' && tx.note.length > 500) return false;
+  return true;
+}
+
+export async function createSecureBackup(password, accountId) {
+  if (!password || password.length < 4) {
+    throw new Error('Password must be at least 4 characters');
+  }
+
+  const key = getSessionKey(accountId);
+  if (!key) throw new Error('Session expired');
+
+  const allEncrypted = await db.transactions.where('accountId').equals(accountId).toArray();
+  const saltSetting = await db.settings.get('salt:' + accountId);
+  const tokenSetting = await db.settings.get('verificationToken:' + accountId);
+  const account = await db.accounts.get(accountId);
+
+  // Decrypt all transactions with session key
+  const rawTransactions = [];
+  for (const enc of allEncrypted) {
+    try {
+      const plain = await decryptTransactionFromStorage(enc, key);
+      if (validateTransactionData(plain)) {
+        rawTransactions.push(plain);
+      }
+    } catch { /* skip undecryptable */ }
+  }
+
+  if (rawTransactions.length === 0 && allEncrypted.length > 0) {
+    throw new Error('Failed to decrypt transactions');
+  }
+
+  const backupPayload = {
+    transactions: rawTransactions,
+    accountSalt: saltSetting ? saltSetting.value : null,
+    verificationToken: tokenSetting ? tokenSetting.value : null,
+    version: 3
+  };
+
+  const backupSalt = generateSalt();
+  const backupIV = generateIV();
+  const backupKey = await deriveKey(password, backupSalt, PBKDF2_ITERATIONS);
+
+  const jsonString = JSON.stringify(backupPayload);
+  const encrypted = await encryptData(jsonString, backupKey, backupIV);
+
+  return {
+    salt: Array.from(backupSalt),
+    iv: Array.from(backupIV),
+    ciphertext: Array.from(new Uint8Array(encrypted)),
+    version: 3,
+    algorithm: 'AES-GCM-256',
+    iterations: PBKDF2_ITERATIONS,
+    accountName: account ? account.name : 'Unknown',
+    timestamp: new Date().toISOString()
+  };
+}
+
+export async function parseSecureBackup(backup) {
+  if (!backup || !backup.salt || !backup.iv || !backup.ciphertext) {
+    throw new Error('Invalid backup format');
+  }
+  return {
+    version: backup.version || 1,
+    iterations: backup.iterations || PBKDF2_ITERATIONS,
+    accountName: backup.accountName || null,
+    timestamp: backup.timestamp || null
+  };
+}
+
+export async function restoreSecureBackup(backup, password, accountId) {
+  if (!backup || !backup.salt || !backup.iv || !backup.ciphertext) {
+    throw new Error('Invalid backup format: missing required fields');
+  }
+  if (!password || password.length < 4) {
+    throw new Error('Password must be at least 4 characters');
+  }
+
+  const salt = new Uint8Array(backup.salt);
+  const iv = new Uint8Array(backup.iv);
+  const iterations = backup.iterations || PBKDF2_ITERATIONS;
+  const key = await deriveKey(password, salt, iterations);
+
+  let decrypted;
+  try {
+    const encryptedData = new Uint8Array(backup.ciphertext);
+    decrypted = await decryptData(encryptedData, key, iv);
+  } catch {
+    throw new Error('Wrong password or corrupted backup');
+  }
+
+  let backupPayload;
+  try {
+    backupPayload = JSON.parse(decrypted);
+  } catch {
+    throw new Error('Invalid backup data');
+  }
+
+  if (!backupPayload.transactions || !Array.isArray(backupPayload.transactions)) {
+    throw new Error('Invalid backup data: missing transactions');
+  }
+
+  // Validate all transactions
+  const validTransactions = [];
+  for (const tx of backupPayload.transactions) {
+    if (validateTransactionData(tx)) {
+      validTransactions.push(tx);
+    }
+  }
+
+  if (validTransactions.length === 0) {
+    throw new Error('No valid transactions in backup');
+  }
+
+  const sessionKey = getSessionKey(accountId);
+  if (!sessionKey) throw new Error('Session expired');
+
+  // Re-encrypt transactions with current session key
+  const reEncrypted = [];
+  for (const tx of validTransactions) {
+    const encrypted = await encryptTransactionForStorage(tx, sessionKey);
+    encrypted.accountId = accountId;
+    reEncrypted.push(encrypted);
+  }
+
+  // Atomic write
+  await db.transaction('rw', db.transactions, db.settings, async () => {
+    await db.transactions.where('accountId').equals(accountId).delete();
+    await db.transactions.bulkAdd(reEncrypted);
+
+    // Restore account crypto setup if provided and not already set
+    if (backupPayload.accountSalt) {
+      const existingSalt = await db.settings.get('salt:' + accountId);
+      if (!existingSalt) {
+        await db.settings.put({ key: 'salt:' + accountId, value: backupPayload.accountSalt });
+      }
+    }
+    if (backupPayload.verificationToken) {
+      const existingToken = await db.settings.get('verificationToken:' + accountId);
+      if (!existingToken) {
+        await db.settings.put({ key: 'verificationToken:' + accountId, value: backupPayload.verificationToken });
+        await db.settings.put({ key: 'passwordSet:' + accountId, value: true });
+      }
+    }
+  });
+
+  return validTransactions.length;
+}
+
 export async function reEncryptTransactions(transactions, oldKey, newKey) {
   const reEncrypted = [];
   for (const tx of transactions) {
@@ -205,5 +356,9 @@ export default {
   decryptTransactionFromStorage,
   createBackup,
   restoreBackup,
+  createSecureBackup,
+  parseSecureBackup,
+  restoreSecureBackup,
+  validateTransactionData,
   reEncryptTransactions
 };

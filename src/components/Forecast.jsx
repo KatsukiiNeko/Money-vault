@@ -26,8 +26,8 @@ const Forecast = ({ currentBalance = 0 }) => {
           try {
             const tx = await decryptTransactionFromStorage(enc, key);
             transactions.push(tx);
-          } catch (err) {
-            console.warn('[MoneyVault] Decryption failed for transaction', enc.id, err);
+          } catch {
+            // Skip undecryptable transactions
           }
         }
 

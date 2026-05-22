@@ -134,3 +134,4 @@ credentials.json
 *.credentials
 service-account*.json
 wrangler.toml
+.webui_secret_key
