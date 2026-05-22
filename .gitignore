@@ -123,6 +123,7 @@ backup-*.json
 .openrouter/
 .copilot/
 .cursor/
+.openclaude/
 
 # =========================
 # Auth / credentials
