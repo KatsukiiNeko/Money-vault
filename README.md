@@ -118,30 +118,33 @@ No ML. No external libraries. Just math that runs in microseconds.
 
 ```
 src/
-  components/
-    AccountSelector.jsx    # Multi-account creation/selection/deletion
-    BackupRestore.jsx      # Encrypted backup/restore with two modes
-    CurrencyToggle.jsx     # USD/VND toggle
-    Dashboard.jsx          # Main dashboard with balance, form, history, forecast
-    Forecast.jsx           # Monthly forecast display
-    History.jsx            # Transaction history with delete
-    LanguageToggle.jsx     # EN/VI toggle
-    LockScreen.jsx         # PIN entry with exponential lockout
-    PasswordManager.jsx    # Change password with full re-encryption
-    ThemeToggle.jsx        # Dark/light toggle
-    TransactionForm.jsx    # Add transaction form
-  context/
-    CurrencyContext.jsx    # Currency state with localStorage
-    LanguageContext.jsx     # i18n with localStorage
-    ThemeContext.jsx        # Theme state with localStorage
-  crypto/
-    crypto.js              # All encryption, key derivation, session management
-  db/
-    db.js                  # Dexie schema with migrations
-  i18n/
-    translations.js        # EN/VI translation strings
-  utils/
-    forecast.js            # EWMA + IQR forecasting engine
+├── components/
+│   ├── AccountSelector.jsx    # Multi-account creation/selection/deletion
+│   ├── BackupRestore.jsx      # Encrypted backup/restore with two modes
+│   ├── CurrencyToggle.jsx     # USD/VND toggle
+│   ├── Dashboard.jsx          # Main dashboard with balance, form, history, forecast
+│   ├── Forecast.jsx           # Monthly forecast display
+│   ├── History.jsx            # Transaction history with delete
+│   ├── LanguageToggle.jsx     # EN/VI toggle
+│   ├── LockScreen.jsx         # PIN entry with exponential lockout
+│   ├── PasswordManager.jsx    # Change password with full re-encryption
+│   ├── ThemeToggle.jsx        # Dark/light toggle
+│   └── TransactionForm.jsx    # Add transaction form
+├── context/
+│   ├── CurrencyContext.jsx    # Currency state with localStorage
+│   ├── LanguageContext.jsx    # i18n with localStorage
+│   └── ThemeContext.jsx       # Theme state with localStorage
+├── crypto/
+│   └── crypto.js              # All encryption, key derivation, session management
+├── db/
+│   └── db.js                  # Dexie schema with migrations
+├── i18n/
+│   └── translations.js        # EN/VI translation strings
+├── utils/
+│   └── forecast.js            # EWMA + IQR forecasting engine
+├── App.jsx                    # Root component with session timeout
+├── index.css                  # Full application stylesheet
+└── main.jsx                   # Entry point, SW registration, context providers
 ```
 
 ---
