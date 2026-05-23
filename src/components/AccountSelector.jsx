@@ -16,6 +16,7 @@ const AccountSelector = ({ onAccountSelected }) => {
   const [deletingId, setDeletingId] = useState(null);
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteError, setDeleteError] = useState('');
+  const [selectedId, setSelectedId] = useState(null);
   const { t } = useLanguage();
 
   const lastUsedId = (() => {
@@ -62,8 +63,11 @@ const AccountSelector = ({ onAccountSelected }) => {
   };
 
   const handleSelect = (accountId) => {
-    setActiveAccountId(accountId);
-    onAccountSelected(accountId);
+    setSelectedId(accountId);
+    setTimeout(() => {
+      setActiveAccountId(accountId);
+      onAccountSelected(accountId);
+    }, 400);
   };
 
   const handleDelete = async (accountId) => {
@@ -149,7 +153,7 @@ const AccountSelector = ({ onAccountSelected }) => {
   }
 
   return (
-    <div className="account-selector">
+    <div className={`account-selector${selectedId ? ' exiting' : ''}`}>
       <div className="account-selector-container">
         <div className="account-selector-toggle">
           <ThemeToggle />
@@ -176,11 +180,11 @@ const AccountSelector = ({ onAccountSelected }) => {
             {accounts.map((account, index) => (
               <div
                 key={account.id}
-                className={`account-item ${account.id === lastUsedId ? 'last-used' : ''}`}
+                className={`account-item ${account.id === lastUsedId ? 'last-used' : ''}${selectedId === account.id ? ' selected' : ''}${selectedId && selectedId !== account.id ? ' not-selected' : ''}`}
                 style={{ animationDelay: `${0.1 + index * 0.1}s` }}
               >
                 <div className="account-item-row">
-                  <div className="account-item-clickable" onClick={() => handleSelect(account.id)}>
+                  <div className="account-item-clickable" onClick={() => !selectedId && handleSelect(account.id)}>
                     <div className="account-item-info">
                       <div className="account-item-name">
                         {account.name}
