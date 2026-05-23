@@ -99,7 +99,6 @@ const AccountSelector = ({ onAccountSelected }) => {
           return;
         }
       }
-      // When credentials are missing, the 4-char password entry above acts as a gate
 
       await db.transactions.where('accountId').equals(accountId).delete();
       await db.settings.delete('salt:' + accountId);

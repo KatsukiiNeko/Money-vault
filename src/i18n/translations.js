@@ -1,11 +1,9 @@
 export const translations = {
-  // ── App ──
   'app.copyright': {
     en: 'Katsukii Neko. All rights reserved.',
     vi: 'Katsukii Neko. All rights reserved.'
   },
 
-  // ── LockScreen ──
   'lock.title': {
     en: 'Money Vault',
     vi: 'Money Vault'
@@ -71,7 +69,6 @@ export const translations = {
     vi: 'Không dữ liệu nào được gửi đến máy chủ'
   },
 
-  // ── Dashboard ──
   'dashboard.title': {
     en: 'Money Vault',
     vi: 'Money Vault'
@@ -178,7 +175,6 @@ export const translations = {
     vi: 'Thêm giao dịch thất bại. Vui lòng thử lại.'
   },
 
-  // ── Categories ──
   'cat.foodDining': {
     en: 'Food & Dining',
     vi: 'Đồ ăn & Ăn uống'
@@ -228,7 +224,6 @@ export const translations = {
     vi: 'Thu nhập khác'
   },
 
-  // ── History ──
   'history.title': {
     en: 'Transaction History',
     vi: 'Lịch sử giao dịch'
@@ -262,7 +257,6 @@ export const translations = {
     vi: 'Xác nhận xóa'
   },
 
-  // ── Forecast ──
   'forecast.title': {
     en: 'Monthly Forecast',
     vi: 'Dự báo theo tháng'
@@ -324,7 +318,6 @@ export const translations = {
     vi: 'N/A — chưa đủ dữ liệu'
   },
 
-  // ── PasswordManager ──
   'password.toggleLabel': {
     en: 'Change Password',
     vi: 'Đổi mật khẩu'
@@ -402,7 +395,6 @@ export const translations = {
     vi: 'Đã đạt số lần thử tối đa. Đóng và mở lại ứng dụng để thử lại.'
   },
 
-  // ── BackupRestore ──
   'backup.title': {
     en: 'Backup & Restore',
     vi: 'Sao lưu & Khôi phục'
@@ -532,7 +524,6 @@ export const translations = {
     vi: 'Ngày sao lưu'
   },
 
-  // ── Account Selector ──
   'accounts.title': {
     en: 'Money Vault',
     vi: 'Money Vault'
@@ -610,7 +601,6 @@ export const translations = {
     vi: 'Dùng gần đây'
   },
 
-  // ── Lock Screen additions ──
   'lock.errors.tokenMissing': {
     en: 'Data corrupted. Account reset required.',
     vi: 'Dữ liệu bị lỗi. Cần đặt lại tài khoản.'
@@ -632,19 +622,16 @@ export const translations = {
     vi: 'Tên tài khoản không khớp. Nhập chính xác tên hiển thị.'
   },
 
-  // ── Dashboard additions ──
   'dashboard.switchAccount': {
     en: 'Switch Account',
     vi: 'Đổi tài khoản'
   },
 
-  // ── Session ──
   'session.timeoutWarning': {
     en: 'Session expired due to inactivity',
     vi: 'Phiên đã hết hạn do không hoạt động'
   },
 
-  // ── Onboarding ──
   'onboarding.welcome': {
     en: 'Welcome to Money Vault',
     vi: 'Chào mừng đến với Money Vault'
@@ -690,7 +677,6 @@ export const translations = {
     vi: 'Bắt đầu'
   },
 
-  // ── Settings Panel ──
   'settings.title': {
     en: 'Settings',
     vi: 'Cài đặt'
@@ -712,7 +698,6 @@ export const translations = {
     vi: 'Đơn vị tiền'
   },
 
-  // ── Confirm Dialog ──
   'confirm.restore': {
     en: 'Restore Backup',
     vi: 'Khôi phục bản sao lưu'
@@ -726,7 +711,6 @@ export const translations = {
     vi: 'Tiếp tục'
   },
 
-  // ── Empty States ──
   'empty.transactions.title': {
     en: 'No transactions yet',
     vi: 'Chưa có giao dịch'
@@ -744,7 +728,6 @@ export const translations = {
     vi: 'Thêm một vài giao dịch để xem dự báo chi tiêu.'
   },
 
-  // ── First Use Hints ──
   'hint.addTransaction': {
     en: 'Start here: add your first transaction',
     vi: 'Bắt đầu tại đây: thêm giao dịch đầu tiên'
@@ -754,7 +737,6 @@ export const translations = {
     vi: 'Quản lý mật khẩu và sao lưu tại đây'
   },
 
-  // ── VND hint ──
   'form.amountHint': {
     en: '',
     vi: '(đơn vị: nghìn VNĐ)'
@@ -764,7 +746,6 @@ export const translations = {
     vi: '0'
   },
 
-  // ── Fixed Bills ──
   'forecast.fixedBills': {
     en: 'Expected Bills',
     vi: 'Hóa đơn dự kiến'

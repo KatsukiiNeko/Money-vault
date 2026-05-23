@@ -14,7 +14,7 @@ import {
 import ConfirmDialog from './ConfirmDialog';
 
 const BackupRestore = ({ onBackup, onSecureBackup, onRestore, onSecureRestore }) => {
-  const [mode, setMode] = useState(null); // null, 'secureBackup', 'secureRestore', 'legacyRestore'
+  const [mode, setMode] = useState(null);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -24,7 +24,6 @@ const BackupRestore = ({ onBackup, onSecureBackup, onRestore, onSecureRestore })
   const [restoreMeta, setRestoreMeta] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // Lockout state
   const [fingerprint, setFingerprint] = useState(null);
   const [lockoutTimer, setLockoutTimer] = useState(0);
   const [powProgress, setPowProgress] = useState(null);
@@ -33,7 +32,6 @@ const BackupRestore = ({ onBackup, onSecureBackup, onRestore, onSecureRestore })
   const lockoutIntervalRef = useRef(null);
   const { t } = useLanguage();
 
-  // Compute fingerprint and check lockout when a backup is loaded for restore
   useEffect(() => {
     if (pendingBackup && mode === 'secureRestore') {
       const initLockout = async () => {
@@ -44,20 +42,18 @@ const BackupRestore = ({ onBackup, onSecureBackup, onRestore, onSecureRestore })
           if (lockout.locked && lockout.reason === 'time_lockout') {
             setLockoutTimer(Math.ceil(lockout.retryAfter / 1000));
           }
-        } catch { /* fingerprint computation failed */ }
+        } catch { }
       };
       initLockout();
     }
   }, [pendingBackup, mode]);
 
-  // Lockout countdown timer
   useEffect(() => {
     if (lockoutTimer > 0) {
       lockoutIntervalRef.current = setInterval(() => {
         setLockoutTimer(prev => {
           if (prev <= 1) {
             clearInterval(lockoutIntervalRef.current);
-            // Re-check lockout status
             if (fingerprint) {
               checkLockout(fingerprint).then(lockout => {
                 if (!lockout.locked) setLockoutTimer(0);
@@ -72,7 +68,6 @@ const BackupRestore = ({ onBackup, onSecureBackup, onRestore, onSecureRestore })
     return () => { if (lockoutIntervalRef.current) clearInterval(lockoutIntervalRef.current); };
   }, [lockoutTimer, fingerprint]);
 
-  // PoW elapsed time timer
   useEffect(() => {
     if (!powProgress) return undefined;
     const interval = setInterval(() => {
@@ -154,7 +149,6 @@ const BackupRestore = ({ onBackup, onSecureBackup, onRestore, onSecureRestore })
       const result = await onRestore();
 
       if (result.format === 'secure' || result.format === 'legacy') {
-        // Need password — show password form
         setPendingBackup(result.backup);
         setRestoreMeta(result.meta || null);
         setMode('secureRestore');
@@ -183,7 +177,6 @@ const BackupRestore = ({ onBackup, onSecureBackup, onRestore, onSecureRestore })
       return;
     }
 
-    // Check lockout
     const lockout = await checkLockout(fingerprint);
     if (lockout.locked) {
       if (lockout.reason === 'session_limit') {
@@ -195,7 +188,6 @@ const BackupRestore = ({ onBackup, onSecureBackup, onRestore, onSecureRestore })
       return;
     }
 
-    // Proof-of-work gate
     const state = await getLockoutState(fingerprint);
     const pow = getPoWChallenge(fingerprint, state.failedAttempts);
     if (pow) {
@@ -239,7 +231,6 @@ const BackupRestore = ({ onBackup, onSecureBackup, onRestore, onSecureRestore })
     }
   };
 
-  // Password form for secure backup or restore
   if (mode === 'secureBackup' || mode === 'secureRestore') {
     const isBackup = mode === 'secureBackup';
     return (
@@ -315,7 +306,6 @@ const BackupRestore = ({ onBackup, onSecureBackup, onRestore, onSecureRestore })
     );
   }
 
-  // Default: two backup buttons + restore
   return (
     <div className="backup-restore">
       <h2>{t('backup.title')}</h2>

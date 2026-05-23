@@ -1,9 +1,4 @@
-/*
-* Money Vault — Polished Dark/Light Theme
-* Preserves original dark palette identity. Light mode derived from same hues.
-*/
 
-/* ─── Dark Theme (original palette, preserved) ─── */
 :root,
 [data-theme="dark"] {
   --primary: #814DE5;
@@ -62,7 +57,6 @@
   --shadow-glow-lg: 0 6px 25px rgba(129, 77, 229, 0.3);
 }
 
-/* ─── Light Theme (derived from same hue palette) ─── */
 [data-theme="light"] {
   --primary: #6b3fd4;
   --primary-light: #814DE5;
@@ -117,7 +111,6 @@
   --shadow-glow-lg: 0 6px 25px rgba(107, 63, 212, 0.2);
 }
 
-/* ─── Global Reset ─── */
 *, *::before, *::after {
   margin: 0;
   padding: 0;
@@ -140,7 +133,6 @@ body {
               color var(--duration-slow) var(--ease-smooth);
 }
 
-/* ─── App Shell ─── */
 .app {
   min-height: 100vh;
   display: flex;
@@ -149,7 +141,6 @@ body {
   color: var(--text-primary);
 }
 
-/* ─── Footer ─── */
 .footer {
   display: flex;
   justify-content: center;
@@ -172,7 +163,6 @@ body {
   font-weight: 600;
 }
 
-/* ─── Easing Tokens ─── */
 :root {
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out-back: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -184,7 +174,6 @@ body {
   --duration-page: 500ms;
 }
 
-/* ─── Shared Transitions ─── */
 button, input, select, textarea {
   font-family: inherit;
   transition: border-color var(--duration-normal) var(--ease-smooth),
@@ -194,21 +183,16 @@ button, input, select, textarea {
               transform var(--duration-fast) var(--ease-out-back);
 }
 
-/* Focus ring */
 :focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
 
-/* ─── Scrollbar ─── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 8px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
 
-/* ══════════════════════════════════════════════════
-   LOCK SCREEN
-   ══════════════════════════════════════════════════ */
 
 .lock-screen {
   display: flex;
@@ -395,7 +379,6 @@ button, input, select, textarea {
   line-height: 1.7;
 }
 
-/* ─── Unlock Animation ─── */
 .lock-screen.unlocking {
   animation: vaultBgFlash 0.5s ease-out forwards;
 }
@@ -447,7 +430,6 @@ button, input, select, textarea {
   100% { width: 200vmax; height: 200vmax; opacity: 0; }
 }
 
-/* ─── Reset Account Button ─── */
 .reset-account-btn {
   margin-top: 1.25rem;
   padding: 0.75rem 1.5rem;
@@ -475,7 +457,6 @@ button, input, select, textarea {
   transform: scale(0.97);
 }
 
-/* ─── Reset Confirmation Form ─── */
 .reset-account-section {
   width: 100%;
 }
@@ -541,9 +522,6 @@ button, input, select, textarea {
   background: var(--surface-elevated);
 }
 
-/* ══════════════════════════════════════════════════
-   ACCOUNT SELECTOR
-   ══════════════════════════════════════════════════ */
 
 .account-selector {
   display: flex;
@@ -691,7 +669,6 @@ button, input, select, textarea {
   transform: scale(0.85);
 }
 
-/* ─── Delete Confirmation ─── */
 .delete-confirm {
   display: flex;
   flex-direction: column;
@@ -771,7 +748,6 @@ button, input, select, textarea {
   transform: scale(1.02);
 }
 
-/* ─── Create Account Form ─── */
 .create-account-form {
   display: flex;
   flex-direction: column;
@@ -884,9 +860,6 @@ button, input, select, textarea {
   text-align: left;
 }
 
-/* ══════════════════════════════════════════════════
-   DASHBOARD
-   ══════════════════════════════════════════════════ */
 
 .dashboard {
   animation: pageEnter var(--duration-page) var(--ease-spring) forwards;
@@ -976,7 +949,6 @@ button, input, select, textarea {
   font-family: inherit;
 }
 
-/* ─── Header Controls ─── */
 .header-controls {
   display: flex;
   align-items: center;
@@ -1037,7 +1009,6 @@ button, input, select, textarea {
   filter: brightness(0.95);
 }
 
-/* ─── Balance Summary ─── */
 .balance-summary {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1085,7 +1056,6 @@ button, input, select, textarea {
 .balance-item .value.income { color: var(--income); }
 .balance-item .value.expense { color: var(--expense); }
 
-/* ─── Dashboard Content Grid ─── */
 .dashboard-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1099,9 +1069,6 @@ button, input, select, textarea {
   gap: 1.5rem;
 }
 
-/* ══════════════════════════════════════════════════
-   SHARED CARD
-   ══════════════════════════════════════════════════ */
 
 .transaction-form-container,
 .transaction-history,
@@ -1144,9 +1111,6 @@ button, input, select, textarea {
   letter-spacing: -0.01em;
 }
 
-/* ══════════════════════════════════════════════════
-   TRANSACTION FORM
-   ══════════════════════════════════════════════════ */
 
 .transaction-form {
   display: flex;
@@ -1223,7 +1187,6 @@ button, input, select, textarea {
   padding-right: 2.25rem;
 }
 
-/* ─── Type Indicator ─── */
 .type-indicator {
   padding: 0.75rem 0.875rem;
   border: 1px solid var(--border-strong);
@@ -1297,9 +1260,6 @@ button, input, select, textarea {
   filter: brightness(0.95);
 }
 
-/* ══════════════════════════════════════════════════
-   TRANSACTION HISTORY
-   ══════════════════════════════════════════════════ */
 
 .transaction-history {
   flex: 1;
@@ -1497,7 +1457,6 @@ button, input, select, textarea {
   transform: scale(0.85);
 }
 
-/* ─── Empty / Loading States ─── */
 .no-transactions {
   padding: 2.5rem 1rem;
   text-align: center;
@@ -1514,9 +1473,6 @@ button, input, select, textarea {
 
 .error { color: var(--expense); }
 
-/* ══════════════════════════════════════════════════
-   FORECAST
-   ══════════════════════════════════════════════════ */
 
 .forecast-content {
   display: grid;
@@ -1573,9 +1529,6 @@ button, input, select, textarea {
   font-weight: 400;
 }
 
-/* ══════════════════════════════════════════════════
-   PASSWORD MANAGER
-   ══════════════════════════════════════════════════ */
 
 .password-manager-toggle {
   display: flex;
@@ -1745,9 +1698,6 @@ button, input, select, textarea {
   border: 1px solid var(--income-border);
 }
 
-/* ══════════════════════════════════════════════════
-   BACKUP & RESTORE
-   ══════════════════════════════════════════════════ */
 
 .backup-restore-buttons {
   display: flex;
@@ -1826,7 +1776,6 @@ button, input, select, textarea {
   border: 1px solid var(--border);
 }
 
-/* ─── Secure Backup Button Variant ─── */
 .backup-button.secure {
   background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
   color: white;
@@ -1837,7 +1786,6 @@ button, input, select, textarea {
   box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
 }
 
-/* ─── Backup Password Form ─── */
 .backup-password-form {
   display: flex;
   flex-direction: column;
@@ -1913,7 +1861,6 @@ button, input, select, textarea {
   cursor: not-allowed;
 }
 
-/* ─── Backup Metadata ─── */
 .backup-meta {
   display: flex;
   gap: 0.5rem;
@@ -1932,9 +1879,6 @@ button, input, select, textarea {
   font-weight: 600;
 }
 
-/* ══════════════════════════════════════════════════
-   ERROR & SUCCESS MESSAGES
-   ══════════════════════════════════════════════════ */
 
 .error-message {
   color: var(--expense);
@@ -1956,9 +1900,6 @@ button, input, select, textarea {
   animation: slideDown var(--duration-normal) var(--ease-out-expo);
 }
 
-/* ══════════════════════════════════════════════════
-   CURRENCY & LANGUAGE TOGGLES
-   ══════════════════════════════════════════════════ */
 
 .currency-toggle {
   display: flex;
@@ -2021,7 +1962,6 @@ button, input, select, textarea {
   opacity: 0.5;
 }
 
-/* ─── Theme Toggle ─── */
 .theme-toggle {
   display: flex;
   align-items: center;
@@ -2057,9 +1997,6 @@ button, input, select, textarea {
   letter-spacing: 0.02em;
 }
 
-/* ══════════════════════════════════════════════════
-   ANIMATIONS
-   ══════════════════════════════════════════════════ */
 
 @keyframes pageEnter {
   from {
@@ -2121,9 +2058,6 @@ button, input, select, textarea {
   100% { background-position: 200% 0; }
 }
 
-/* ══════════════════════════════════════════════════
-   HERO BALANCE
-   ══════════════════════════════════════════════════ */
 
 .hero-balance {
   position: relative;
@@ -2230,9 +2164,6 @@ button, input, select, textarea {
 .hero-balance-stat .stat-value.income { color: var(--income); }
 .hero-balance-stat .stat-value.expense { color: var(--expense); }
 
-/* ══════════════════════════════════════════════════
-   SETTINGS PANEL
-   ══════════════════════════════════════════════════ */
 
 .settings-overlay {
   position: fixed;
@@ -2242,15 +2173,18 @@ button, input, select, textarea {
   display: flex;
   justify-content: flex-end;
   animation: fadeIn var(--duration-fast) var(--ease-smooth);
+  overflow: hidden;
+  overscroll-behavior: contain;
 }
 
 .settings-panel {
   width: 400px;
   max-width: 100%;
-  height: 100%;
+  max-height: 100dvh;
   background: var(--bg-secondary);
   border-left: 1px solid var(--border);
   overflow-y: auto;
+  overscroll-behavior: contain;
   animation: slideInRight var(--duration-normal) var(--ease-out-expo);
   display: flex;
   flex-direction: column;
@@ -2342,9 +2276,6 @@ button, input, select, textarea {
   margin-bottom: 0;
 }
 
-/* ══════════════════════════════════════════════════
-   CONFIRM DIALOG
-   ══════════════════════════════════════════════════ */
 
 .confirm-overlay {
   position: fixed;
@@ -2441,9 +2372,6 @@ button, input, select, textarea {
   transform: translateY(0) scale(0.98);
 }
 
-/* ══════════════════════════════════════════════════
-   ONBOARDING OVERLAY
-   ══════════════════════════════════════════════════ */
 
 .onboarding-overlay {
   position: fixed;
@@ -2590,9 +2518,6 @@ button, input, select, textarea {
   box-shadow: var(--shadow-glow-lg);
 }
 
-/* ══════════════════════════════════════════════════
-   EMPTY STATES
-   ══════════════════════════════════════════════════ */
 
 .empty-state {
   display: flex;
@@ -2628,9 +2553,6 @@ button, input, select, textarea {
   max-width: 260px;
 }
 
-/* ══════════════════════════════════════════════════
-   FIRST-USE HINTS
-   ══════════════════════════════════════════════════ */
 
 .first-use-hint {
   display: flex;
@@ -2650,9 +2572,6 @@ button, input, select, textarea {
   flex-shrink: 0;
 }
 
-/* ══════════════════════════════════════════════════
-   SPENDING PACE BAR
-   ══════════════════════════════════════════════════ */
 
 .pace-bar-track {
   width: 100%;
@@ -2677,9 +2596,6 @@ button, input, select, textarea {
   background: var(--expense);
 }
 
-/* ══════════════════════════════════════════════════
-   CATEGORY ICONS
-   ══════════════════════════════════════════════════ */
 
 .category-icon-badge {
   width: 36px;
@@ -2705,7 +2621,6 @@ button, input, select, textarea {
 .category-icon-badge.investment { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
 .category-icon-badge.other { background: rgba(148, 163, 184, 0.12); color: #94a3b8; }
 
-/* Last used account badge */
 .last-used-badge {
   display: inline-block;
   font-size: 0.65rem;
@@ -2720,9 +2635,6 @@ button, input, select, textarea {
   vertical-align: middle;
 }
 
-/* ══════════════════════════════════════════════════
-   SETTINGS GEAR BUTTON
-   ══════════════════════════════════════════════════ */
 
 .settings-gear-btn {
   display: flex;
@@ -2752,9 +2664,6 @@ button, input, select, textarea {
   transform: scale(0.92);
 }
 
-/* ══════════════════════════════════════════════════
-   FIXED BILLS LIST
-   ══════════════════════════════════════════════════ */
 
 .fixed-bills-section {
   margin-top: 0.75rem;
@@ -2792,9 +2701,6 @@ button, input, select, textarea {
   font-variant-numeric: tabular-nums;
 }
 
-/* ══════════════════════════════════════════════════
-   ADDITIONAL ANIMATIONS
-   ══════════════════════════════════════════════════ */
 
 @keyframes fadeIn {
   from { opacity: 0; }
@@ -2817,9 +2723,6 @@ button, input, select, textarea {
   }
 }
 
-/* ══════════════════════════════════════════════════
-   RESPONSIVE
-   ══════════════════════════════════════════════════ */
 
 @media (max-width: 768px) {
   .dashboard {
@@ -2962,8 +2865,7 @@ button, input, select, textarea {
     gap: 0.5rem;
   }
 
-  /* Mobile: show delete buttons always */
-  .transaction-item .transaction-delete-btn {
+    .transaction-item .transaction-delete-btn {
     opacity: 1;
   }
 
@@ -2972,8 +2874,7 @@ button, input, select, textarea {
     font-size: 0.7rem;
   }
 
-  /* Hero balance responsive */
-  .hero-balance {
+    .hero-balance {
     padding: 1.75rem 1.25rem;
   }
 
@@ -2986,18 +2887,35 @@ button, input, select, textarea {
     flex-wrap: wrap;
   }
 
-  /* Settings panel responsive */
-  .settings-panel {
+    .settings-panel {
     width: 100%;
+    max-height: 100dvh;
   }
 
-  /* Onboarding responsive */
-  .onboarding-card {
+    .onboarding-card {
     padding: 2rem 1.5rem 1.5rem;
   }
 
   .confirm-dialog {
     padding: 1.5rem;
+  }
+
+  *::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+
+  * {
+    scrollbar-width: none;
+  }
+
+  .transactions-list::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .transactions-list {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
   }
 }
 

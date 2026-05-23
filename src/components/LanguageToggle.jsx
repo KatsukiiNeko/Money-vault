@@ -15,7 +15,6 @@ const LanguageToggle = () => {
               <polygon points="22,0 22,16 0,16" />
             </clipPath>
           </defs>
-          {/* US flag - top-left triangle */}
           <g clipPath="url(#en-tl)">
             <rect width="22" height="16" fill="#B22234" />
             <rect y="1.23" width="22" height="1.23" fill="#fff" />
@@ -26,7 +25,6 @@ const LanguageToggle = () => {
             <rect y="13.54" width="22" height="1.23" fill="#fff" />
             <rect width="8.8" height="8.62" fill="#3C3B6E" />
           </g>
-          {/* UK flag - bottom-right triangle */}
           <g clipPath="url(#en-br)">
             <rect width="22" height="16" fill="#012169" />
             <line x1="0" y1="0" x2="22" y2="16" stroke="#fff" strokeWidth="2.7" />

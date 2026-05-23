@@ -68,7 +68,6 @@ const History = () => {
             tx.id = enc.id;
             decrypted.push(tx);
           } catch {
-            // Skip undecryptable transactions
           }
         }
         setTransactions(decrypted);

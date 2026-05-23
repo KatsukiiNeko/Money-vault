@@ -1,19 +1,9 @@
-/**
- * Money Vault — Backup Restore Anti-Brute-Force Lockout System
- *
- * Triple-store persistence (IndexedDB + localStorage + sessionStorage)
- * with cross-validation, escalating PBKDF2 cost, and SHA-256 proof-of-work.
- */
-
 import { db } from '../db/db';
-
-// ─── Constants ──────────────────────────────────────────────────────────────
 
 const BACKUP_LOCKOUT_LS_KEY = 'mv_backup_lockouts';
 const BACKUP_LOCKOUT_SS_KEY = 'mv_backup_session';
 const IDB_KEY_PREFIX = 'backupLockout:';
 
-// Password change lockout uses the same triple-store pattern
 const PWD_LOCKOUT_LS_KEY = 'mv_pwd_lockouts';
 const PWD_LOCKOUT_SS_KEY = 'mv_pwd_session';
 const PWD_IDB_PREFIX = 'pwdLockout:';
@@ -34,8 +24,6 @@ const LOCKOUT_TIERS = [
   { threshold: 20, duration: 1_800_000,   multiplier: 50 },
 ];
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
 function readLocalStorage() {
   try { return JSON.parse(localStorage.getItem(BACKUP_LOCKOUT_LS_KEY) || '{}'); }
   catch { return {}; }
@@ -43,7 +31,7 @@ function readLocalStorage() {
 
 function writeLocalStorage(store) {
   try { localStorage.setItem(BACKUP_LOCKOUT_LS_KEY, JSON.stringify(store)); }
-  catch { /* storage unavailable */ }
+  catch { }
 }
 
 function readSessionStorage() {
@@ -53,7 +41,7 @@ function readSessionStorage() {
 
 function writeSessionStorage(store) {
   try { sessionStorage.setItem(BACKUP_LOCKOUT_SS_KEY, JSON.stringify(store)); }
-  catch { /* storage unavailable */ }
+  catch { }
 }
 
 async function readIDB(fingerprint) {
@@ -66,15 +54,9 @@ async function readIDB(fingerprint) {
 async function writeIDB(fingerprint, state) {
   try {
     await db.settings.put({ key: IDB_KEY_PREFIX + fingerprint, value: state });
-  } catch { /* IDB unavailable */ }
+  } catch { }
 }
 
-// ─── Fingerprint ────────────────────────────────────────────────────────────
-
-/**
- * Compute a SHA-256 fingerprint that binds lockout state to a specific backup file.
- * Uses the backup's salt + first 16 bytes of the ciphertext hash.
- */
 export async function computeBackupFingerprint(backup) {
   const saltBuf = new Uint8Array(backup.salt);
   const ctHash = await crypto.subtle.digest('SHA-256', new Uint8Array(backup.ciphertext));
@@ -90,11 +72,6 @@ export async function computeBackupFingerprint(backup) {
     .join('');
 }
 
-// ─── Lockout State ──────────────────────────────────────────────────────────
-
-/**
- * Read lockout state from all three stores, cross-validate with Math.max().
- */
 export async function getLockoutState(fingerprint) {
   const idbState = await readIDB(fingerprint);
   const lsStore = readLocalStorage();
@@ -123,9 +100,6 @@ export async function getLockoutState(fingerprint) {
   };
 }
 
-/**
- * Check if the user is currently locked out for this backup fingerprint.
- */
 export async function checkLockout(fingerprint) {
   const state = await getLockoutState(fingerprint);
 
@@ -148,12 +122,6 @@ export async function checkLockout(fingerprint) {
   return { locked: false };
 }
 
-// ─── Record Attempts ────────────────────────────────────────────────────────
-
-/**
- * Record a failed attempt across all three stores.
- * Returns the updated state.
- */
 export async function recordFailedAttempt(fingerprint) {
   const state = await getLockoutState(fingerprint);
   const newAttempts = state.failedAttempts + 1;
@@ -177,15 +145,12 @@ export async function recordFailedAttempt(fingerprint) {
     version: 1,
   };
 
-  // Write to IndexedDB
   await writeIDB(fingerprint, newState);
 
-  // Write to localStorage
   const lsStore = readLocalStorage();
   lsStore[fingerprint] = newState;
   writeLocalStorage(lsStore);
 
-  // Write to sessionStorage
   const ssStore = readSessionStorage();
   ssStore[fingerprint] = {
     attempts: newSessionAttempts,
@@ -196,9 +161,6 @@ export async function recordFailedAttempt(fingerprint) {
   return newState;
 }
 
-/**
- * Record a successful attempt — clear lockout across all stores.
- */
 export async function recordSuccessfulAttempt(fingerprint) {
   const clearedState = {
     failedAttempts: 0,
@@ -219,21 +181,10 @@ export async function recordSuccessfulAttempt(fingerprint) {
   writeSessionStorage(ssStore);
 }
 
-// ─── PBKDF2 Escalation ─────────────────────────────────────────────────────
-
-/**
- * Compute escalated PBKDF2 iterations based on lockout multiplier.
- */
 export function getEscalatedIterations(baseIterations, multiplier) {
   return Math.min(baseIterations * multiplier, baseIterations * PBKDF2_MAX_MULTIPLIER);
 }
 
-// ─── Proof of Work ──────────────────────────────────────────────────────────
-
-/**
- * Get a PoW challenge if the attempt count exceeds the threshold.
- * Returns null if PoW is not required.
- */
 export function getPoWChallenge(fingerprint, attemptCount) {
   if (attemptCount < POW_THRESHOLD) return null;
 
@@ -248,11 +199,6 @@ export function getPoWChallenge(fingerprint, attemptCount) {
   return { challenge: Array.from(challenge), difficulty };
 }
 
-/**
- * Solve a SHA-256 proof-of-work challenge.
- * Finds a nonce such that SHA-256(challenge + nonce) has at least `difficulty` leading zero bits.
- * Yields to the event loop every 10,000 iterations to prevent UI freezing.
- */
 export async function computeProofOfWork(challenge, difficulty) {
   const challengeBytes = new Uint8Array(challenge);
   let nonce = 0;
@@ -271,7 +217,6 @@ export async function computeProofOfWork(challenge, difficulty) {
 
     const hash = new Uint8Array(await crypto.subtle.digest('SHA-256', combined));
 
-    // Count leading zero bits
     let leadingZeros = 0;
     for (const byte of hash) {
       if (byte === 0) { leadingZeros += 8; }
@@ -288,7 +233,6 @@ export async function computeProofOfWork(challenge, difficulty) {
 
     nonce++;
 
-    // Yield to UI every 10,000 iterations to prevent freezing
     if (nonce % 10000 === 0) {
       await new Promise(r => setTimeout(r, 0));
     }
@@ -297,10 +241,6 @@ export async function computeProofOfWork(challenge, difficulty) {
   throw new Error('Proof of work failed');
 }
 
-// ─── Password Change Lockout ────────────────────────────────────────────────
-// Same triple-store pattern, keyed by accountId instead of backup fingerprint.
-// Used by PasswordManager.jsx for the change-password flow.
-
 function readPwdLocalStorage() {
   try { return JSON.parse(localStorage.getItem(PWD_LOCKOUT_LS_KEY) || '{}'); }
   catch { return {}; }
@@ -308,7 +248,7 @@ function readPwdLocalStorage() {
 
 function writePwdLocalStorage(store) {
   try { localStorage.setItem(PWD_LOCKOUT_LS_KEY, JSON.stringify(store)); }
-  catch { /* storage unavailable */ }
+  catch { }
 }
 
 function readPwdSessionStorage() {
@@ -318,7 +258,7 @@ function readPwdSessionStorage() {
 
 function writePwdSessionStorage(store) {
   try { sessionStorage.setItem(PWD_LOCKOUT_SS_KEY, JSON.stringify(store)); }
-  catch { /* storage unavailable */ }
+  catch { }
 }
 
 async function readPwdIDB(accountId) {
@@ -331,7 +271,7 @@ async function readPwdIDB(accountId) {
 async function writePwdIDB(accountId, state) {
   try {
     await db.settings.put({ key: PWD_IDB_PREFIX + accountId, value: state });
-  } catch { /* IDB unavailable */ }
+  } catch { }
 }
 
 export async function getPwdLockoutState(accountId) {

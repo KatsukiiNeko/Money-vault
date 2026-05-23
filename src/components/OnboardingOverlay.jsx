@@ -46,7 +46,7 @@ const OnboardingOverlay = ({ onComplete }) => {
   };
 
   const complete = () => {
-    try { localStorage.setItem(ONBOARDING_KEY, '1'); } catch { /* */ }
+    try { localStorage.setItem(ONBOARDING_KEY, '1'); } catch { }
     onComplete();
   };
 

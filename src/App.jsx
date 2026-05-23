@@ -16,31 +16,14 @@ function App() {
   const { t } = useLanguage();
   const timeoutRef = useRef(null);
 
-  // Auto-select last-used account or skip selector for single account
   useEffect(() => {
-    const autoSelect = async () => {
+    const checkAccounts = async () => {
       try {
-        const accounts = await db.accounts.toArray();
-
-        // Try last-used account first
-        const lastUsed = localStorage.getItem(LAST_ACCOUNT_KEY);
-        if (lastUsed && accounts.find(a => a.id === lastUsed)) {
-          setAccountId(lastUsed);
-          setIsLocked(true);
-          setIsLoading(false);
-          return;
-        }
-
-        // Auto-skip for single account
-        if (accounts.length === 1) {
-          localStorage.setItem(LAST_ACCOUNT_KEY, accounts[0].id);
-          setAccountId(accounts[0].id);
-          setIsLocked(true);
-        }
-      } catch { /* */ }
+        await db.accounts.toArray();
+      } catch { }
       setIsLoading(false);
     };
-    autoSelect();
+    checkAccounts();
   }, []);
 
   const resetTimeout = useCallback(() => {

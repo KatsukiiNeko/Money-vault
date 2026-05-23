@@ -13,7 +13,6 @@ import { useLanguage } from '../context/LanguageContext';
 
 const formatBalanceParts = (amount, formatCurrency) => {
   const formatted = formatCurrency(amount);
-  // Split into major and minor parts (e.g., "$1,234.56" -> ["$1,234", ".56"])
   const match = formatted.match(/^(.*?)(\.\d{2})?$/);
   if (match) {
     return { major: match[1], minor: match[2] || '' };
@@ -41,7 +40,7 @@ const Dashboard = ({ onLogout, onSwitchAccount }) => {
       try {
         const account = await db.accounts.get(accountId);
         if (account) setAccountName(account.name);
-      } catch { /* account not found */ }
+      } catch { }
     };
     loadAccount();
   }, [accountId]);
@@ -65,7 +64,6 @@ const Dashboard = ({ onLogout, onSwitchAccount }) => {
               totalExpenses += tx.amount;
             }
           } catch {
-            // Skip undecryptable transactions
           }
         }
 
@@ -74,7 +72,7 @@ const Dashboard = ({ onLogout, onSwitchAccount }) => {
           expenses: totalExpenses,
           balance: totalIncome - totalExpenses
         });
-      } catch { /* balance calc failed */ }
+      } catch { }
     };
 
     calculateBalance();
@@ -89,7 +87,7 @@ const Dashboard = ({ onLogout, onSwitchAccount }) => {
     try {
       await db.accounts.update(accountId, { name: trimmed });
       setAccountName(trimmed);
-    } catch { /* rename failed */ }
+    } catch { }
     setEditingName(false);
   };
 
@@ -217,7 +215,6 @@ const Dashboard = ({ onLogout, onSwitchAccount }) => {
     return count;
   };
 
-  // Format hero balance with split integer/decimal
   const heroParts = formatBalanceParts(balance.balance, formatCurrency);
   const incomeParts = formatBalanceParts(balance.income, formatCurrency);
   const expenseParts = formatBalanceParts(balance.expenses, formatCurrency);
@@ -279,7 +276,6 @@ const Dashboard = ({ onLogout, onSwitchAccount }) => {
         </div>
       </div>
 
-      {/* Hero Balance */}
       <div className="hero-balance">
         <div className="hero-balance-label">{t('dashboard.totalBalance')}</div>
         <div className="hero-balance-value">

@@ -196,7 +196,6 @@ export async function createSecureBackup(password, accountId) {
   const tokenSetting = await db.settings.get('verificationToken:' + accountId);
   const account = await db.accounts.get(accountId);
 
-  // Decrypt all transactions with session key
   const rawTransactions = [];
   for (const enc of allEncrypted) {
     try {
@@ -204,7 +203,7 @@ export async function createSecureBackup(password, accountId) {
       if (validateTransactionData(plain)) {
         rawTransactions.push(plain);
       }
-    } catch { /* skip undecryptable */ }
+    } catch { }
   }
 
   if (rawTransactions.length === 0 && allEncrypted.length > 0) {
@@ -281,7 +280,6 @@ export async function restoreSecureBackup(backup, password, accountId, overrideI
     throw new Error('Invalid backup data: missing transactions');
   }
 
-  // Validate all transactions
   const validTransactions = [];
   for (const tx of backupPayload.transactions) {
     if (validateTransactionData(tx)) {
@@ -296,7 +294,6 @@ export async function restoreSecureBackup(backup, password, accountId, overrideI
   const sessionKey = getSessionKey(accountId);
   if (!sessionKey) throw new Error('Session expired');
 
-  // Re-encrypt transactions with current session key
   const reEncrypted = [];
   for (const tx of validTransactions) {
     const encrypted = await encryptTransactionForStorage(tx, sessionKey);
@@ -304,12 +301,10 @@ export async function restoreSecureBackup(backup, password, accountId, overrideI
     reEncrypted.push(encrypted);
   }
 
-  // Atomic write
   await db.transaction('rw', db.transactions, db.settings, async () => {
     await db.transactions.where('accountId').equals(accountId).delete();
     await db.transactions.bulkAdd(reEncrypted);
 
-    // Restore account crypto setup if provided and not already set
     if (backupPayload.accountSalt) {
       const existingSalt = await db.settings.get('salt:' + accountId);
       if (!existingSalt) {

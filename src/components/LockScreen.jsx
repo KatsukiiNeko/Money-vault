@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { deriveKey, generateSalt, createVerificationToken, verifyPassword, setSessionKey, encryptTransactionForStorage, decryptTransactionFromStorage, PBKDF2_ITERATIONS } from '../crypto/crypto';
 import { db } from '../db/db';
 import { useLanguage } from '../context/LanguageContext';
@@ -27,7 +27,7 @@ const setLocalAttempts = (accountId, attempts) => {
     const stored = JSON.parse(localStorage.getItem(ATTEMPT_STORAGE_KEY) || '{}');
     stored[accountId] = { attempts, lastAttempt: Date.now() };
     localStorage.setItem(ATTEMPT_STORAGE_KEY, JSON.stringify(stored));
-  } catch { /* localStorage unavailable */ }
+  } catch { }
 };
 
 const clearLocalAttempts = (accountId) => {
@@ -35,7 +35,7 @@ const clearLocalAttempts = (accountId) => {
     const stored = JSON.parse(localStorage.getItem(ATTEMPT_STORAGE_KEY) || '{}');
     delete stored[accountId];
     localStorage.setItem(ATTEMPT_STORAGE_KEY, JSON.stringify(stored));
-  } catch { /* localStorage unavailable */ }
+  } catch { }
 };
 
 const upgradePbkdf2Iterations = async (accountId, password) => {
@@ -56,7 +56,7 @@ const upgradePbkdf2Iterations = async (accountId, password) => {
         const encrypted = await encryptTransactionForStorage(plain, newKey);
         encrypted.accountId = accountId;
         reEncrypted.push(encrypted);
-      } catch { /* skip undecryptable */ }
+      } catch { }
     }
 
     const newToken = await createVerificationToken(newKey);
@@ -70,7 +70,7 @@ const upgradePbkdf2Iterations = async (accountId, password) => {
     });
 
     setSessionKey(newKey, accountId);
-  } catch { /* migration failed silently */ }
+  } catch { }
 };
 
 const LockScreen = ({ accountId, onUnlock, onBack }) => {
@@ -93,16 +93,14 @@ const LockScreen = ({ accountId, onUnlock, onBack }) => {
   useEffect(() => {
     const checkLockoutStatus = async () => {
       try {
-        // Load account name for reset confirmation
         const account = await db.accounts.get(accountId);
         if (account) setAccountDisplayName(account.name);
-      } catch { /* account not found */ }
+      } catch { }
 
-      // Check if first time (no password set)
       try {
         const passwordSet = await db.settings.get('passwordSet:' + accountId);
         if (!passwordSet) setIsFirstTime(true);
-      } catch { /* */ }
+      } catch { }
 
       try {
         const lockoutData = await db.settings.get('lockoutData:' + accountId);
@@ -122,20 +120,10 @@ const LockScreen = ({ accountId, onUnlock, onBack }) => {
           setIsLockedOut(true);
           setLockoutEndTime(existingEndTime);
           setFailedAttempts(maxAttempts);
-        } else if (maxAttempts >= 5) {
-          const duration = getLockoutDuration(maxAttempts);
-          const newEndTime = Date.now() + duration;
-          setIsLockedOut(true);
-          setLockoutEndTime(newEndTime);
-          setFailedAttempts(maxAttempts);
-          await db.settings.put({
-            key: 'lockoutData:' + accountId,
-            value: { endTime: newEndTime, failedAttempts: maxAttempts }
-          }).catch(() => {});
         } else {
           setFailedAttempts(maxAttempts);
         }
-      } catch { /* lockout check failed */ }
+      } catch { }
     };
 
     checkLockoutStatus();
@@ -149,6 +137,10 @@ const LockScreen = ({ accountId, onUnlock, onBack }) => {
         if (currentTime >= lockoutEndTime) {
           setIsLockedOut(false);
           setLockoutEndTime(null);
+          db.settings.put({
+            key: 'lockoutData:' + accountId,
+            value: { endTime: 0, failedAttempts }
+          }).catch(() => {});
         }
       }, 1000);
     }
@@ -158,7 +150,7 @@ const LockScreen = ({ accountId, onUnlock, onBack }) => {
         clearInterval(intervalRef.current);
       }
     };
-  }, [isLockedOut, lockoutEndTime]);
+  }, [isLockedOut, lockoutEndTime, failedAttempts, accountId]);
 
   const handleUnlock = async (e) => {
     e.preventDefault();
@@ -244,7 +236,6 @@ const LockScreen = ({ accountId, onUnlock, onBack }) => {
           setPassword('');
         }
       } else {
-        // First-time password setup
         const salt = generateSalt();
         await db.settings.put({ key: 'salt:' + accountId, value: Array.from(salt) });
 

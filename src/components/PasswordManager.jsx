@@ -20,7 +20,6 @@ const PasswordManager = ({ onPasswordChange }) => {
   const lockoutIntervalRef = useRef(null);
   const { t } = useLanguage();
 
-  // Lockout countdown timer
   useEffect(() => {
     if (lockoutTimer > 0) {
       lockoutIntervalRef.current = setInterval(() => {
@@ -65,7 +64,6 @@ const PasswordManager = ({ onPasswordChange }) => {
 
     const accountId = getActiveAccountId();
 
-    // Check lockout
     const lockout = await checkPwdLockout(accountId);
     if (lockout.locked) {
       if (lockout.reason === 'session_limit') {

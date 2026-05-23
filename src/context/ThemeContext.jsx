@@ -18,19 +18,16 @@ export const ThemeProvider = ({ children }) => {
     }
   });
 
-  // Apply theme to document and persist
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     try {
       localStorage.setItem(THEME_KEY, theme);
-    } catch { /* storage unavailable */ }
+    } catch { }
   }, [theme]);
 
-  // Listen for system theme changes — auto-update if user hasn't explicitly chosen
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     const handler = (e) => {
-      // Only auto-update if no explicit preference saved
       const saved = localStorage.getItem(THEME_KEY);
       if (!saved) {
         setTheme(e.matches ? 'dark' : 'light');

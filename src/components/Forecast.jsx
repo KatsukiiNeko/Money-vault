@@ -27,7 +27,6 @@ const Forecast = ({ currentBalance = 0 }) => {
             const tx = await decryptTransactionFromStorage(enc, key);
             transactions.push(tx);
           } catch {
-            // Skip undecryptable transactions
           }
         }
 
