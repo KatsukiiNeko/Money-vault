@@ -58,7 +58,7 @@ const PasswordManager = ({ onPasswordChange }) => {
       return;
     }
 
-    if (newPassword.length < 8) {
+    if (newPassword.length < 4) {
       setError(t('password.errors.tooShort'));
       return;
     }
