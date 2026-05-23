@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { deriveKey, generateSalt, setSessionKey, createVerificationToken, verifyPassword, encryptTransactionForStorage, decryptTransactionFromStorage, getActiveAccountId } from '../crypto/crypto';
+import { deriveKey, generateSalt, setSessionKey, createVerificationToken, verifyPassword, encryptTransactionForStorage, decryptTransactionFromStorage, getActiveAccountId, PBKDF2_ITERATIONS } from '../crypto/crypto';
 import { db } from '../db/db';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -116,6 +116,7 @@ const PasswordManager = ({ onPasswordChange }) => {
         await db.settings.put({ key: 'salt:' + accountId, value: Array.from(newSalt) });
         await db.settings.put({ key: 'verificationToken:' + accountId, value: newToken });
         await db.settings.put({ key: 'passwordSet:' + accountId, value: true });
+        await db.settings.put({ key: 'pbkdf2Version:' + accountId, value: PBKDF2_ITERATIONS });
       });
 
       setSessionKey(newKey, accountId);

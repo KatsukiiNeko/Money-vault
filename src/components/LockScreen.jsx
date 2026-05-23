@@ -247,6 +247,7 @@ const LockScreen = ({ accountId, onUnlock, onBack }) => {
         const token = await createVerificationToken(key);
         await db.settings.put({ key: 'verificationToken:' + accountId, value: token });
         await db.settings.put({ key: 'passwordSet:' + accountId, value: true });
+        await db.settings.put({ key: 'pbkdf2Version:' + accountId, value: PBKDF2_ITERATIONS });
 
         setSessionKey(key, accountId);
         setPassword('');
