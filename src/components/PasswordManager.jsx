@@ -2,6 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import { deriveKey, generateSalt, setSessionKey, createVerificationToken, verifyPassword, encryptTransactionForStorage, decryptTransactionFromStorage, getActiveAccountId, PBKDF2_ITERATIONS } from '../crypto/crypto';
 import { db } from '../db/db';
 import { useLanguage } from '../context/LanguageContext';
+import {
+  checkPwdLockout,
+  recordPwdFailedAttempt,
+  recordPwdSuccessfulAttempt,
+} from '../utils/lockout';
 
 const PasswordManager = ({ onPasswordChange }) => {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -11,17 +16,17 @@ const PasswordManager = ({ onPasswordChange }) => {
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [changeAttempts, setChangeAttempts] = useState(0);
-  const [changeCooldown, setChangeCooldown] = useState(0);
-  const cooldownRef = useRef(null);
+  const [lockoutTimer, setLockoutTimer] = useState(0);
+  const lockoutIntervalRef = useRef(null);
   const { t } = useLanguage();
 
+  // Lockout countdown timer
   useEffect(() => {
-    if (changeCooldown > 0) {
-      cooldownRef.current = setInterval(() => {
-        setChangeCooldown(prev => {
+    if (lockoutTimer > 0) {
+      lockoutIntervalRef.current = setInterval(() => {
+        setLockoutTimer(prev => {
           if (prev <= 1) {
-            clearInterval(cooldownRef.current);
+            clearInterval(lockoutIntervalRef.current);
             return 0;
           }
           return prev - 1;
@@ -29,17 +34,17 @@ const PasswordManager = ({ onPasswordChange }) => {
       }, 1000);
     }
     return () => {
-      if (cooldownRef.current) clearInterval(cooldownRef.current);
+      if (lockoutIntervalRef.current) clearInterval(lockoutIntervalRef.current);
     };
-  }, [changeCooldown]);
+  }, [lockoutTimer]);
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
 
-    if (changeCooldown > 0) {
-      setError(t('password.errors.cooldown', { seconds: changeCooldown }));
+    if (lockoutTimer > 0) {
+      setError(t('password.errors.cooldown', { seconds: lockoutTimer }));
       return;
     }
 
@@ -53,12 +58,24 @@ const PasswordManager = ({ onPasswordChange }) => {
       return;
     }
 
-    if (newPassword.length < 4) {
+    if (newPassword.length < 8) {
       setError(t('password.errors.tooShort'));
       return;
     }
 
     const accountId = getActiveAccountId();
+
+    // Check lockout
+    const lockout = await checkPwdLockout(accountId);
+    if (lockout.locked) {
+      if (lockout.reason === 'session_limit') {
+        setError(t('password.errors.tooManyAttempts'));
+      } else {
+        setLockoutTimer(Math.ceil(lockout.retryAfter / 1000));
+        setError(t('password.errors.cooldown', { seconds: Math.ceil(lockout.retryAfter / 1000) }));
+      }
+      return;
+    }
 
     try {
       setIsLoading(true);
@@ -76,11 +93,10 @@ const PasswordManager = ({ onPasswordChange }) => {
       const isValid = await verifyPassword(oldKey, token.value);
 
       if (!isValid) {
-        const newAttempts = changeAttempts + 1;
-        setChangeAttempts(newAttempts);
-        if (newAttempts >= 3) {
-          setChangeCooldown(30);
-          setChangeAttempts(0);
+        await recordPwdFailedAttempt(accountId);
+        const newLockout = await checkPwdLockout(accountId);
+        if (newLockout.locked && newLockout.reason === 'time_lockout') {
+          setLockoutTimer(Math.ceil(newLockout.retryAfter / 1000));
         }
         setError(t('password.errors.incorrect'));
         setIsLoading(false);
@@ -120,11 +136,11 @@ const PasswordManager = ({ onPasswordChange }) => {
       });
 
       setSessionKey(newKey, accountId);
+      await recordPwdSuccessfulAttempt(accountId);
       setSuccess(t('password.success.changed'));
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      setChangeAttempts(0);
       if (onPasswordChange) onPasswordChange();
     } catch (err) {
       setError(err.message || t('password.errors.changeFailed'));
@@ -165,7 +181,7 @@ const PasswordManager = ({ onPasswordChange }) => {
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 placeholder={t('password.currentPlaceholder')}
-                disabled={isLoading}
+                disabled={isLoading || lockoutTimer > 0}
               />
             </div>
           </div>
@@ -181,7 +197,7 @@ const PasswordManager = ({ onPasswordChange }) => {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder={t('password.newPlaceholder')}
-                disabled={isLoading}
+                disabled={isLoading || lockoutTimer > 0}
               />
             </div>
           </div>
@@ -197,7 +213,7 @@ const PasswordManager = ({ onPasswordChange }) => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder={t('password.confirmPlaceholder')}
-                disabled={isLoading}
+                disabled={isLoading || lockoutTimer > 0}
               />
             </div>
           </div>
@@ -205,7 +221,13 @@ const PasswordManager = ({ onPasswordChange }) => {
           {error && <div className="password-alert error">{error}</div>}
           {success && <div className="password-alert success">{success}</div>}
 
-          <button type="submit" className="password-submit-btn" disabled={isLoading || changeCooldown > 0}>
+          {lockoutTimer > 0 && (
+            <div className="lockout-timer">
+              {t('lock.lockoutTimer', { seconds: lockoutTimer })}
+            </div>
+          )}
+
+          <button type="submit" className="password-submit-btn" disabled={isLoading || lockoutTimer > 0}>
             {isLoading ? t('password.reEncrypting') : t('password.update')}
           </button>
         </form>

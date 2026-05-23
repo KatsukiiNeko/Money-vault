@@ -249,7 +249,7 @@ export async function parseSecureBackup(backup) {
   };
 }
 
-export async function restoreSecureBackup(backup, password, accountId) {
+export async function restoreSecureBackup(backup, password, accountId, overrideIterations) {
   if (!backup || !backup.salt || !backup.iv || !backup.ciphertext) {
     throw new Error('Invalid backup format: missing required fields');
   }
@@ -259,7 +259,7 @@ export async function restoreSecureBackup(backup, password, accountId) {
 
   const salt = new Uint8Array(backup.salt);
   const iv = new Uint8Array(backup.iv);
-  const iterations = backup.iterations || PBKDF2_ITERATIONS;
+  const iterations = overrideIterations || backup.iterations || PBKDF2_ITERATIONS;
   const key = await deriveKey(password, salt, iterations);
 
   let decrypted;

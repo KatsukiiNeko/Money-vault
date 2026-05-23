@@ -1,5 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
+import { PBKDF2_ITERATIONS } from '../crypto/crypto';
+import {
+  computeBackupFingerprint,
+  checkLockout,
+  getLockoutState,
+  recordFailedAttempt,
+  recordSuccessfulAttempt,
+  getEscalatedIterations,
+  getPoWChallenge,
+  computeProofOfWork,
+} from '../utils/lockout';
 import ConfirmDialog from './ConfirmDialog';
 
 const BackupRestore = ({ onBackup, onSecureBackup, onRestore, onSecureRestore }) => {
@@ -11,23 +22,64 @@ const BackupRestore = ({ onBackup, onSecureBackup, onRestore, onSecureRestore })
   const [isLoading, setIsLoading] = useState(false);
   const [pendingBackup, setPendingBackup] = useState(null);
   const [restoreMeta, setRestoreMeta] = useState(null);
-  const [failedAttempts, setFailedAttempts] = useState(0);
-  const [cooldown, setCooldown] = useState(0);
   const [showConfirm, setShowConfirm] = useState(false);
-  const cooldownRef = useRef(null);
+
+  // Lockout state
+  const [fingerprint, setFingerprint] = useState(null);
+  const [lockoutTimer, setLockoutTimer] = useState(0);
+  const [powProgress, setPowProgress] = useState(null);
+  const [powElapsed, setPowElapsed] = useState(0);
+
+  const lockoutIntervalRef = useRef(null);
   const { t } = useLanguage();
 
+  // Compute fingerprint and check lockout when a backup is loaded for restore
   useEffect(() => {
-    if (cooldown > 0) {
-      cooldownRef.current = setInterval(() => {
-        setCooldown(prev => {
-          if (prev <= 1) { clearInterval(cooldownRef.current); return 0; }
+    if (pendingBackup && mode === 'secureRestore') {
+      const initLockout = async () => {
+        try {
+          const fp = await computeBackupFingerprint(pendingBackup);
+          setFingerprint(fp);
+          const lockout = await checkLockout(fp);
+          if (lockout.locked && lockout.reason === 'time_lockout') {
+            setLockoutTimer(Math.ceil(lockout.retryAfter / 1000));
+          }
+        } catch { /* fingerprint computation failed */ }
+      };
+      initLockout();
+    }
+  }, [pendingBackup, mode]);
+
+  // Lockout countdown timer
+  useEffect(() => {
+    if (lockoutTimer > 0) {
+      lockoutIntervalRef.current = setInterval(() => {
+        setLockoutTimer(prev => {
+          if (prev <= 1) {
+            clearInterval(lockoutIntervalRef.current);
+            // Re-check lockout status
+            if (fingerprint) {
+              checkLockout(fingerprint).then(lockout => {
+                if (!lockout.locked) setLockoutTimer(0);
+              });
+            }
+            return 0;
+          }
           return prev - 1;
         });
       }, 1000);
     }
-    return () => { if (cooldownRef.current) clearInterval(cooldownRef.current); };
-  }, [cooldown]);
+    return () => { if (lockoutIntervalRef.current) clearInterval(lockoutIntervalRef.current); };
+  }, [lockoutTimer, fingerprint]);
+
+  // PoW elapsed time timer
+  useEffect(() => {
+    if (!powProgress) return undefined;
+    const interval = setInterval(() => {
+      setPowElapsed(Math.ceil((Date.now() - powProgress.startedAt) / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [powProgress]);
 
   const resetForm = () => {
     setMode(null);
@@ -37,6 +89,10 @@ const BackupRestore = ({ onBackup, onSecureBackup, onRestore, onSecureRestore })
     setStatus('');
     setPendingBackup(null);
     setRestoreMeta(null);
+    setFingerprint(null);
+    setLockoutTimer(0);
+    setPowProgress(null);
+    setPowElapsed(0);
   };
 
   const handleQuickBackup = async () => {
@@ -62,7 +118,7 @@ const BackupRestore = ({ onBackup, onSecureBackup, onRestore, onSecureRestore })
     e.preventDefault();
     setError('');
 
-    if (!password || password.length < 4) {
+    if (!password || password.length < 8) {
       setError(t('backup.passwordTooShort'));
       return;
     }
@@ -117,28 +173,65 @@ const BackupRestore = ({ onBackup, onSecureBackup, onRestore, onSecureRestore })
     e.preventDefault();
     setError('');
 
-    if (!password || password.length < 4) {
+    if (!password || password.length < 8) {
       setError(t('backup.passwordTooShort'));
       return;
     }
 
-    if (cooldown > 0) {
-      setError(t('backup.cooldown', { seconds: cooldown }));
+    if (!fingerprint) {
+      setError(t('backup.failedRestorePrefix') + 'Unable to verify backup');
       return;
+    }
+
+    // Check lockout
+    const lockout = await checkLockout(fingerprint);
+    if (lockout.locked) {
+      if (lockout.reason === 'session_limit') {
+        setError(t('backup.lockout.session_limit'));
+      } else {
+        setLockoutTimer(Math.ceil(lockout.retryAfter / 1000));
+        setError(t('backup.lockout.time_lockout', { seconds: Math.ceil(lockout.retryAfter / 1000) }));
+      }
+      return;
+    }
+
+    // Proof-of-work gate
+    const state = await getLockoutState(fingerprint);
+    const pow = getPoWChallenge(fingerprint, state.failedAttempts);
+    if (pow) {
+      setPowProgress({ difficulty: pow.difficulty, startedAt: Date.now() });
+      try {
+        await computeProofOfWork(pow.challenge, pow.difficulty);
+      } catch {
+        setError(t('backup.powFailed'));
+        setPowProgress(null);
+        return;
+      }
+      setPowProgress(null);
     }
 
     setIsLoading(true);
     setStatus(t('backup.restoring'));
+
     try {
-      const count = await onSecureRestore(pendingBackup, password);
+      const iterations = getEscalatedIterations(
+        pendingBackup.iterations || PBKDF2_ITERATIONS,
+        state.pbkdf2Multiplier
+      );
+
+      if (state.pbkdf2Multiplier > 1) {
+        setStatus(t('backup.escalatedDeriving'));
+      }
+
+      const count = await onSecureRestore(pendingBackup, password, iterations);
+      await recordSuccessfulAttempt(fingerprint);
       setStatus(t('backup.restoreSuccess', { count }));
       resetForm();
     } catch (err) {
-      const newAttempts = failedAttempts + 1;
-      setFailedAttempts(newAttempts);
-      if (newAttempts >= 3) {
-        setCooldown(30);
-        setFailedAttempts(0);
+      await recordFailedAttempt(fingerprint);
+      const newLockout = await checkLockout(fingerprint);
+      if (newLockout.locked && newLockout.reason === 'time_lockout') {
+        setLockoutTimer(Math.ceil(newLockout.retryAfter / 1000));
       }
       setError(t('backup.failedRestorePrefix') + err.message);
     } finally {
@@ -174,7 +267,7 @@ const BackupRestore = ({ onBackup, onSecureBackup, onRestore, onSecureRestore })
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder={t('backup.passwordPlaceholder')}
-              disabled={isLoading}
+              disabled={isLoading || lockoutTimer > 0 || !!powProgress}
               autoComplete="off"
               autoFocus
             />
@@ -197,8 +290,20 @@ const BackupRestore = ({ onBackup, onSecureBackup, onRestore, onSecureRestore })
           {error && <div className="error-message">{error}</div>}
           {status && <div className="status-message">{status}</div>}
 
+          {lockoutTimer > 0 && !isBackup && (
+            <div className="lockout-timer">
+              {t('lock.lockoutTimer', { seconds: lockoutTimer })}
+            </div>
+          )}
+
+          {powProgress && (
+            <div className="status-message">
+              {t('backup.powProgress', { seconds: powElapsed })}
+            </div>
+          )}
+
           <div className="backup-form-actions">
-            <button type="submit" className="backup-button" disabled={isLoading || cooldown > 0}>
+            <button type="submit" className="backup-button" disabled={isLoading || lockoutTimer > 0 || !!powProgress}>
               {isLoading ? t('backup.processing') : (isBackup ? t('backup.createBtn') : t('backup.restoreBtn'))}
             </button>
             <button type="button" className="backup-cancel-btn" onClick={resetForm} disabled={isLoading}>

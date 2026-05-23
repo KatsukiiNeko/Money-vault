@@ -211,8 +211,8 @@ const Dashboard = ({ onLogout, onSwitchAccount }) => {
     throw new Error(t('dashboard.invalidBackupFormat'));
   };
 
-  const handleSecureRestore = async (backup, password) => {
-    const count = await restoreSecureBackup(backup, password, accountId);
+  const handleSecureRestore = async (backup, password, iterations) => {
+    const count = await restoreSecureBackup(backup, password, accountId, iterations);
     setRefreshKey(k => k + 1);
     return count;
   };

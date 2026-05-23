@@ -397,6 +397,10 @@ export const translations = {
     en: 'Too many attempts. Wait {seconds}s before trying again.',
     vi: 'Quá số lần thử. Đợi {seconds}s trước khi thử lại.'
   },
+  'password.errors.tooManyAttempts': {
+    en: 'Maximum attempts reached. Close and reopen the app to try again.',
+    vi: 'Đã đạt số lần thử tối đa. Đóng và mở lại ứng dụng để thử lại.'
+  },
 
   // ── BackupRestore ──
   'backup.title': {
@@ -476,8 +480,8 @@ export const translations = {
     vi: 'Nhập lại mật khẩu'
   },
   'backup.passwordTooShort': {
-    en: 'Password must be at least 4 characters',
-    vi: 'Mật khẩu phải có ít nhất 4 ký tự'
+    en: 'Password must be at least 8 characters',
+    vi: 'Mật khẩu phải có ít nhất 8 ký tự'
   },
   'backup.passwordMismatch': {
     en: 'Passwords do not match',
@@ -498,6 +502,26 @@ export const translations = {
   'backup.cooldown': {
     en: 'Too many attempts. Wait {seconds}s.',
     vi: 'Quá số lần thử. Đợi {seconds}s.'
+  },
+  'backup.lockout.session_limit': {
+    en: 'Maximum attempts reached. Close and reopen the app to try again.',
+    vi: 'Đã đạt số lần thử tối đa. Đóng và mở lại ứng dụng để thử lại.'
+  },
+  'backup.lockout.time_lockout': {
+    en: 'Too many failed attempts. Wait {seconds}s.',
+    vi: 'Quá số lần thử sai. Đợi {seconds}s.'
+  },
+  'backup.powProgress': {
+    en: 'Computing verification... ({seconds}s elapsed)',
+    vi: 'Đang tính toán xác minh... ({seconds}s)'
+  },
+  'backup.powFailed': {
+    en: 'Verification computation failed. Please try again.',
+    vi: 'Tính toán xác minh thất bại. Vui lòng thử lại.'
+  },
+  'backup.escalatedDeriving': {
+    en: 'Deriving key (enhanced security)...',
+    vi: 'Đang tạo khóa (bảo mật nâng cao)...'
   },
   'backup.accountName': {
     en: 'Account',
