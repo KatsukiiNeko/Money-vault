@@ -4,14 +4,44 @@ import LockScreen from './components/LockScreen';
 import Dashboard from './components/Dashboard';
 import { clearSessionKey } from './crypto/crypto';
 import { useLanguage } from './context/LanguageContext';
+import { db } from './db/db';
 
 const SESSION_TIMEOUT = 15 * 60 * 1000;
+const LAST_ACCOUNT_KEY = 'money-vault-last-account';
 
 function App() {
   const [accountId, setAccountId] = useState(null);
   const [isLocked, setIsLocked] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const { t } = useLanguage();
   const timeoutRef = useRef(null);
+
+  // Auto-select last-used account or skip selector for single account
+  useEffect(() => {
+    const autoSelect = async () => {
+      try {
+        const accounts = await db.accounts.toArray();
+
+        // Try last-used account first
+        const lastUsed = localStorage.getItem(LAST_ACCOUNT_KEY);
+        if (lastUsed && accounts.find(a => a.id === lastUsed)) {
+          setAccountId(lastUsed);
+          setIsLocked(true);
+          setIsLoading(false);
+          return;
+        }
+
+        // Auto-skip for single account
+        if (accounts.length === 1) {
+          localStorage.setItem(LAST_ACCOUNT_KEY, accounts[0].id);
+          setAccountId(accounts[0].id);
+          setIsLocked(true);
+        }
+      } catch { /* */ }
+      setIsLoading(false);
+    };
+    autoSelect();
+  }, []);
 
   const resetTimeout = useCallback(() => {
     if (timeoutRef.current) {
@@ -46,6 +76,7 @@ function App() {
   }, [isLocked, resetTimeout]);
 
   const handleAccountSelected = (id) => {
+    localStorage.setItem(LAST_ACCOUNT_KEY, id);
     setAccountId(id);
     setIsLocked(true);
   };
@@ -61,9 +92,26 @@ function App() {
 
   const handleSwitchAccount = () => {
     clearSessionKey();
+    localStorage.removeItem(LAST_ACCOUNT_KEY);
     setAccountId(null);
     setIsLocked(true);
   };
+
+  if (isLoading) {
+    return (
+      <div className="app">
+        <div className="lock-screen">
+          <div className="lock-screen-container">
+            <div className="spinner" style={{ margin: '2rem auto' }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary-light)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!accountId) {
     return (

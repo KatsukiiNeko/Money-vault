@@ -4,13 +4,22 @@ import { getSessionKey, decryptTransactionFromStorage, encryptData, decryptData,
 import TransactionForm from './TransactionForm';
 import History from './History';
 import Forecast from './Forecast';
-import BackupRestore from './BackupRestore';
-import PasswordManager from './PasswordManager';
-import CurrencyToggle from './CurrencyToggle';
-import LanguageToggle from './LanguageToggle';
+import SettingsPanel from './SettingsPanel';
+import OnboardingOverlay from './OnboardingOverlay';
 import ThemeToggle from './ThemeToggle';
+import LanguageToggle from './LanguageToggle';
 import { useCurrency } from '../context/CurrencyContext';
 import { useLanguage } from '../context/LanguageContext';
+
+const formatBalanceParts = (amount, formatCurrency) => {
+  const formatted = formatCurrency(amount);
+  // Split into major and minor parts (e.g., "$1,234.56" -> ["$1,234", ".56"])
+  const match = formatted.match(/^(.*?)(\.\d{2})?$/);
+  if (match) {
+    return { major: match[1], minor: match[2] || '' };
+  }
+  return { major: formatted, minor: '' };
+};
 
 const Dashboard = ({ onLogout, onSwitchAccount }) => {
   const [balance, setBalance] = useState({ income: 0, expenses: 0, balance: 0 });
@@ -18,6 +27,10 @@ const Dashboard = ({ onLogout, onSwitchAccount }) => {
   const [accountName, setAccountName] = useState('');
   const [editingName, setEditingName] = useState(false);
   const [editValue, setEditValue] = useState('');
+  const [showSettings, setShowSettings] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    try { return localStorage.getItem('money-vault-onboarded') !== '1'; } catch { return false; }
+  });
   const { formatCurrency } = useCurrency();
   const { t } = useLanguage();
 
@@ -158,15 +171,12 @@ const Dashboard = ({ onLogout, onSwitchAccount }) => {
 
     const backup = await readBackupFile();
 
-    // Auto-detect format
     if (backup.version === 3) {
-      // v3 secure backup — needs password, return metadata for UI to prompt
       const meta = await parseSecureBackup(backup);
       return { format: 'secure', meta, backup };
     }
 
     if (backup.version === 2 || !backup.version) {
-      // v2 quick backup — use session key
       if (!backup.iv || !backup.ciphertext) {
         throw new Error(t('dashboard.invalidBackupFormat'));
       }
@@ -195,7 +205,6 @@ const Dashboard = ({ onLogout, onSwitchAccount }) => {
     }
 
     if (backup.version === 1) {
-      // v1 legacy — needs password
       return { format: 'legacy', backup };
     }
 
@@ -208,8 +217,17 @@ const Dashboard = ({ onLogout, onSwitchAccount }) => {
     return count;
   };
 
+  // Format hero balance with split integer/decimal
+  const heroParts = formatBalanceParts(balance.balance, formatCurrency);
+  const incomeParts = formatBalanceParts(balance.income, formatCurrency);
+  const expenseParts = formatBalanceParts(balance.expenses, formatCurrency);
+
   return (
     <div className="dashboard">
+      {showOnboarding && (
+        <OnboardingOverlay onComplete={() => setShowOnboarding(false)} />
+      )}
+
       <div className="dashboard-header">
         <div className="dashboard-title-row">
           <h1>{t('dashboard.title')}</h1>
@@ -241,7 +259,17 @@ const Dashboard = ({ onLogout, onSwitchAccount }) => {
         <div className="header-controls">
           <ThemeToggle />
           <LanguageToggle />
-          <CurrencyToggle />
+          <button
+            className="settings-gear-btn"
+            onClick={() => setShowSettings(true)}
+            title={t('settings.title')}
+            aria-label={t('settings.title')}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+          </button>
           <button onClick={onSwitchAccount} className="switch-account-button">
             {t('accounts.switch')}
           </button>
@@ -251,32 +279,59 @@ const Dashboard = ({ onLogout, onSwitchAccount }) => {
         </div>
       </div>
 
-      <div className="balance-summary">
-        <div className="balance-item">
-          <span className="label">{t('dashboard.totalBalance')}</span>
-          <span className="value">{formatCurrency(balance.balance)}</span>
+      {/* Hero Balance */}
+      <div className="hero-balance">
+        <div className="hero-balance-label">{t('dashboard.totalBalance')}</div>
+        <div className="hero-balance-value">
+          {heroParts.major}
+          <span className="hero-balance-cents">{heroParts.minor}</span>
         </div>
-        <div className="balance-item">
-          <span className="label">{t('dashboard.income')}</span>
-          <span className="value income">{formatCurrency(balance.income)}</span>
-        </div>
-        <div className="balance-item">
-          <span className="label">{t('dashboard.expenses')}</span>
-          <span className="value expense">{formatCurrency(balance.expenses)}</span>
+        <div className="hero-balance-sub">
+          <div className="hero-balance-stat">
+            <div className="stat-arrow income">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="19" x2="12" y2="5" />
+                <polyline points="5 12 12 5 19 12" />
+              </svg>
+            </div>
+            <div>
+              <div className="stat-label">+ {t('dashboard.income')}</div>
+              <div className="stat-value income">{incomeParts.major}<span style={{ fontSize: '0.75em', opacity: 0.7 }}>{incomeParts.minor}</span></div>
+            </div>
+          </div>
+          <div className="hero-balance-stat">
+            <div className="stat-arrow expense">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <polyline points="19 12 12 19 5 12" />
+              </svg>
+            </div>
+            <div>
+              <div className="stat-label">- {t('dashboard.expenses')}</div>
+              <div className="stat-value expense">{expenseParts.major}<span style={{ fontSize: '0.75em', opacity: 0.7 }}>{expenseParts.minor}</span></div>
+            </div>
+          </div>
         </div>
       </div>
 
       <div className="dashboard-content">
         <div className="left-column">
           <TransactionForm onTransactionAdded={handleTransactionAdded} />
-          <PasswordManager />
-          <BackupRestore onBackup={handleBackup} onSecureBackup={handleSecureBackup} onRestore={handleRestore} onSecureRestore={handleSecureRestore} />
         </div>
         <div className="right-column">
           <Forecast currentBalance={balance.balance} />
           <History key={refreshKey} />
         </div>
       </div>
+
+      <SettingsPanel
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        onBackup={handleBackup}
+        onSecureBackup={handleSecureBackup}
+        onRestore={handleRestore}
+        onSecureRestore={handleSecureRestore}
+      />
     </div>
   );
 };

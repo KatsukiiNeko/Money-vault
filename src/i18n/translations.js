@@ -581,6 +581,10 @@ export const translations = {
     en: 'Cancel',
     vi: 'Hủy'
   },
+  'accounts.lastUsed': {
+    en: 'Last used',
+    vi: 'Dùng gần đây'
+  },
 
   // ── Lock Screen additions ──
   'lock.errors.tokenMissing': {
@@ -614,6 +618,136 @@ export const translations = {
   'session.timeoutWarning': {
     en: 'Session expired due to inactivity',
     vi: 'Phiên đã hết hạn do không hoạt động'
+  },
+
+  // ── Onboarding ──
+  'onboarding.welcome': {
+    en: 'Welcome to Money Vault',
+    vi: 'Chào mừng đến với Money Vault'
+  },
+  'onboarding.getStarted': {
+    en: 'Let\'s get you set up',
+    vi: 'Hãy bắt đầu thiết lập'
+  },
+  'onboarding.step1Title': {
+    en: 'Add Your First Transaction',
+    vi: 'Thêm giao dịch đầu tiên'
+  },
+  'onboarding.step1Desc': {
+    en: 'Track your income and expenses by adding transactions. Choose a category, enter the amount, and you\'re done.',
+    vi: 'Theo dõi thu nhập và chi tiêu bằng cách thêm giao dịch. Chọn danh mục, nhập số tiền, và hoàn tất.'
+  },
+  'onboarding.step2Title': {
+    en: 'Track Your Forecast',
+    vi: 'Theo dõi dự báo'
+  },
+  'onboarding.step2Desc': {
+    en: 'See where your money is going. The forecast shows your spending pace and projected balance for the month.',
+    vi: 'Xem tiền của bạn đi đâu. Dự báo cho thấy tốc độ chi tiêu và số dư dự kiến trong tháng.'
+  },
+  'onboarding.step3Title': {
+    en: 'Your Data is Secure',
+    vi: 'Dữ liệu được bảo mật'
+  },
+  'onboarding.step3Desc': {
+    en: 'All your data is encrypted and stored only on your device. Create backups in the Settings menu to keep your data safe.',
+    vi: 'Tất cả dữ liệu được mã hóa và chỉ lưu trên thiết bị. Tạo bản sao lưu trong menu Cài đặt để giữ an toàn.'
+  },
+  'onboarding.skip': {
+    en: 'Skip',
+    vi: 'Bỏ qua'
+  },
+  'onboarding.next': {
+    en: 'Next',
+    vi: 'Tiếp theo'
+  },
+  'onboarding.done': {
+    en: 'Get Started',
+    vi: 'Bắt đầu'
+  },
+
+  // ── Settings Panel ──
+  'settings.title': {
+    en: 'Settings',
+    vi: 'Cài đặt'
+  },
+  'settings.security': {
+    en: 'Security',
+    vi: 'Bảo mật'
+  },
+  'settings.data': {
+    en: 'Data',
+    vi: 'Dữ liệu'
+  },
+  'settings.appearance': {
+    en: 'Appearance',
+    vi: 'Giao diện'
+  },
+  'settings.currency': {
+    en: 'Currency',
+    vi: 'Đơn vị tiền'
+  },
+
+  // ── Confirm Dialog ──
+  'confirm.restore': {
+    en: 'Restore Backup',
+    vi: 'Khôi phục bản sao lưu'
+  },
+  'confirm.restoreMessage': {
+    en: 'Restoring will replace all current data with the backup. This cannot be undone.',
+    vi: 'Khôi phục sẽ thay thế toàn bộ dữ liệu hiện tại. Thao tác này không thể hoàn tác.'
+  },
+  'confirm.continue': {
+    en: 'Continue',
+    vi: 'Tiếp tục'
+  },
+
+  // ── Empty States ──
+  'empty.transactions.title': {
+    en: 'No transactions yet',
+    vi: 'Chưa có giao dịch'
+  },
+  'empty.transactions.desc': {
+    en: 'Add your first transaction above to start tracking your finances.',
+    vi: 'Thêm giao dịch đầu tiên ở trên để bắt đầu theo dõi tài chính.'
+  },
+  'empty.forecast.title': {
+    en: 'Not enough data',
+    vi: 'Chưa đủ dữ liệu'
+  },
+  'empty.forecast.desc': {
+    en: 'Add some transactions to see your spending forecast.',
+    vi: 'Thêm một vài giao dịch để xem dự báo chi tiêu.'
+  },
+
+  // ── First Use Hints ──
+  'hint.addTransaction': {
+    en: 'Start here: add your first transaction',
+    vi: 'Bắt đầu tại đây: thêm giao dịch đầu tiên'
+  },
+  'hint.settings': {
+    en: 'Manage password and backups here',
+    vi: 'Quản lý mật khẩu và sao lưu tại đây'
+  },
+
+  // ── VND hint ──
+  'form.amountHint': {
+    en: '',
+    vi: '(đơn vị: nghìn VNĐ)'
+  },
+  'form.amountPlaceholder': {
+    en: '0.00',
+    vi: '0'
+  },
+
+  // ── Fixed Bills ──
+  'forecast.fixedBills': {
+    en: 'Expected Bills',
+    vi: 'Hóa đơn dự kiến'
+  },
+  'forecast.fixedBillsPending': {
+    en: 'Pending',
+    vi: 'Chưa thanh toán'
   }
 };
 

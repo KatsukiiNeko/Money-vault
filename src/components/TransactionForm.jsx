@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { db } from '../db/db';
 import { getSessionKey, encryptTransactionForStorage, getActiveAccountId } from '../crypto/crypto';
 import { useLanguage } from '../context/LanguageContext';
+import { useCurrency } from '../context/CurrencyContext';
 
 const CATEGORY_TYPE_MAP = {
   'Food & Dining': 'expense',
@@ -26,6 +27,7 @@ const TransactionForm = ({ onTransactionAdded }) => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const { t } = useLanguage();
+  const { currency } = useCurrency();
 
   const categories = [
     { key: 'foodDining', value: 'Food & Dining' },
@@ -139,8 +141,12 @@ const TransactionForm = ({ onTransactionAdded }) => {
               onChange={(e) => setAmount(e.target.value)}
               step="0.01"
               min="0"
+              placeholder={t('form.amountPlaceholder')}
               required
             />
+            {currency === 'VND' && t('form.amountHint') && (
+              <span className="input-hint">{t('form.amountHint')}</span>
+            )}
           </div>
         </div>
 

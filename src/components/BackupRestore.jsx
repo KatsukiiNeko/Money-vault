@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
+import ConfirmDialog from './ConfirmDialog';
 
 const BackupRestore = ({ onBackup, onSecureBackup, onRestore, onSecureRestore }) => {
   const [mode, setMode] = useState(null); // null, 'secureBackup', 'secureRestore', 'legacyRestore'
@@ -12,6 +13,7 @@ const BackupRestore = ({ onBackup, onSecureBackup, onRestore, onSecureRestore })
   const [restoreMeta, setRestoreMeta] = useState(null);
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [cooldown, setCooldown] = useState(0);
+  const [showConfirm, setShowConfirm] = useState(false);
   const cooldownRef = useRef(null);
   const { t } = useLanguage();
 
@@ -82,9 +84,12 @@ const BackupRestore = ({ onBackup, onSecureBackup, onRestore, onSecureRestore })
     }
   };
 
-  const handleRestoreClick = async () => {
-    if (!window.confirm(t('backup.confirmRestore'))) return;
+  const handleRestoreClick = () => {
+    setShowConfirm(true);
+  };
 
+  const handleConfirmRestore = async () => {
+    setShowConfirm(false);
     setIsLoading(true);
     setStatus(t('backup.restoreStarted'));
     setError('');
@@ -234,6 +239,15 @@ const BackupRestore = ({ onBackup, onSecureBackup, onRestore, onSecureRestore })
       </div>
       {error && <div className="error-message">{error}</div>}
       {status && <div className="status-message">{status}</div>}
+
+      {showConfirm && (
+        <ConfirmDialog
+          title={t('confirm.restore')}
+          message={t('confirm.restoreMessage')}
+          onConfirm={handleConfirmRestore}
+          onCancel={() => setShowConfirm(false)}
+        />
+      )}
     </div>
   );
 };

@@ -46,8 +46,21 @@ const Forecast = ({ currentBalance = 0 }) => {
     return <div className="forecast">{t('forecast.loading')}</div>;
   }
 
-  if (!forecastData) {
-    return <div className="forecast">{t('forecast.noData')}</div>;
+  if (!forecastData || (forecastData.typicalMonthlySpending === 0 && forecastData.dailySpending === 0)) {
+    return (
+      <div className="forecast-container">
+        <h2>{t('forecast.title')}</h2>
+        <div className="empty-state">
+          <div className="empty-state-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+            </svg>
+          </div>
+          <h4>{t('empty.forecast.title')}</h4>
+          <p>{t('empty.forecast.desc')}</p>
+        </div>
+      </div>
+    );
   }
 
   const remainingDays = (() => {
@@ -55,6 +68,9 @@ const Forecast = ({ currentBalance = 0 }) => {
     const totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
     return totalDays - now.getDate();
   })();
+
+  const pacePercent = forecastData.spendingPacePercent || 0;
+  const isOverspending = forecastData.isOverspending;
 
   return (
     <div className="forecast-container">
@@ -78,12 +94,18 @@ const Forecast = ({ currentBalance = 0 }) => {
         </div>
         {forecastData.typicalMonthlySpending > 0 ? (
           <>
-            <div className={`forecast-item forecast-status ${forecastData.isOverspending ? 'overspending' : 'on-track'}`}>
+            <div className={`forecast-item forecast-status ${isOverspending ? 'overspending' : 'on-track'}`}>
               <span className="label">{t('forecast.spendingPace')}</span>
               <span className="value">
-                {forecastData.spendingPacePercent !== undefined ? forecastData.spendingPacePercent + '% — ' : ''}
-                {forecastData.isOverspending ? t('forecast.overspending') : t('forecast.onTrack')}
+                {pacePercent > 0 ? pacePercent + '% — ' : ''}
+                {isOverspending ? t('forecast.overspending') : t('forecast.onTrack')}
               </span>
+              <div className="pace-bar-track">
+                <div
+                  className={`pace-bar-fill ${isOverspending ? 'overspending' : 'on-track'}`}
+                  style={{ width: `${Math.min(pacePercent, 120)}%` }}
+                />
+              </div>
             </div>
             <div className="forecast-item">
               <span className="label">{t('forecast.typicalSpending')}</span>
@@ -98,6 +120,18 @@ const Forecast = ({ currentBalance = 0 }) => {
           <div className="forecast-item">
             <span className="label">{t('forecast.spendingPace')}</span>
             <span className="value forecast-na">{t('forecast.noBaseline')}</span>
+          </div>
+        )}
+
+        {forecastData.fixedBillsPending && forecastData.fixedBillsPending.length > 0 && (
+          <div className="fixed-bills-section">
+            <div className="fixed-bills-title">{t('forecast.fixedBills')}</div>
+            {forecastData.fixedBillsPending.map((bill, i) => (
+              <div key={i} className="fixed-bill-item">
+                <span className="bill-name">{t('forecast.fixedBillsPending')}</span>
+                <span className="bill-amount">{formatCurrency(bill.amount)}</span>
+              </div>
+            ))}
           </div>
         )}
       </div>

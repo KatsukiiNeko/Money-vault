@@ -5,8 +5,11 @@ import { useLanguage } from '../context/LanguageContext';
 import LanguageToggle from './LanguageToggle';
 import ThemeToggle from './ThemeToggle';
 
+const LAST_ACCOUNT_KEY = 'money-vault-last-account';
+
 const AccountSelector = ({ onAccountSelected }) => {
   const [accounts, setAccounts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [newAccountName, setNewAccountName] = useState('');
   const [error, setError] = useState('');
@@ -15,13 +18,17 @@ const AccountSelector = ({ onAccountSelected }) => {
   const [deleteError, setDeleteError] = useState('');
   const { t } = useLanguage();
 
+  const lastUsedId = (() => {
+    try { return localStorage.getItem(LAST_ACCOUNT_KEY); } catch { return null; }
+  })();
+
   const loadAccounts = async () => {
     const all = await db.accounts.toArray();
     setAccounts(all);
+    setLoading(false);
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadAccounts();
   }, []);
 
@@ -125,6 +132,23 @@ const AccountSelector = ({ onAccountSelected }) => {
     });
   };
 
+  if (loading) {
+    return (
+      <div className="account-selector">
+        <div className="account-selector-container">
+          <h1>{t('accounts.title')}</h1>
+          <div className="empty-state">
+            <div className="spinner" style={{ margin: '0 auto' }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary-light)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="account-selector">
       <div className="account-selector-container">
@@ -136,21 +160,35 @@ const AccountSelector = ({ onAccountSelected }) => {
         <h2>{t('accounts.selectPrompt')}</h2>
 
         {accounts.length === 0 && !isCreating ? (
-          <div className="accounts-empty">
-            <p>{t('accounts.empty')}</p>
+          <div className="empty-state">
+            <div className="empty-state-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="8.5" cy="7" r="4" />
+                <line x1="20" y1="8" x2="20" y2="14" />
+                <line x1="23" y1="11" x2="17" y2="11" />
+              </svg>
+            </div>
+            <h4>{t('accounts.empty')}</h4>
+            <p>{t('onboarding.getStarted')}</p>
           </div>
         ) : (
           <div className="accounts-list">
             {accounts.map((account, index) => (
               <div
                 key={account.id}
-                className="account-item"
+                className={`account-item ${account.id === lastUsedId ? 'last-used' : ''}`}
                 style={{ animationDelay: `${0.1 + index * 0.1}s` }}
               >
                 <div className="account-item-row">
                   <div className="account-item-clickable" onClick={() => handleSelect(account.id)}>
                     <div className="account-item-info">
-                      <div className="account-item-name">{account.name}</div>
+                      <div className="account-item-name">
+                        {account.name}
+                        {account.id === lastUsedId && (
+                          <span className="last-used-badge">{t('accounts.lastUsed')}</span>
+                        )}
+                      </div>
                       <div className="account-item-date">
                         {t('accounts.createdAt')}: {formatDate(account.createdAt)}
                       </div>
@@ -230,7 +268,7 @@ const AccountSelector = ({ onAccountSelected }) => {
                   setError('');
                 }}
               >
-                {t('dashboard.lock')}
+                {t('accounts.cancel')}
               </button>
             </div>
           </form>

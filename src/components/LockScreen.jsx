@@ -85,6 +85,7 @@ const LockScreen = ({ accountId, onUnlock, onBack }) => {
   const [resetConfirmStep, setResetConfirmStep] = useState(0);
   const [resetConfirmName, setResetConfirmName] = useState('');
   const [accountDisplayName, setAccountDisplayName] = useState('');
+  const [isFirstTime, setIsFirstTime] = useState(false);
   const passwordInputRef = useRef(null);
   const intervalRef = useRef(null);
   const { t } = useLanguage();
@@ -96,6 +97,12 @@ const LockScreen = ({ accountId, onUnlock, onBack }) => {
         const account = await db.accounts.get(accountId);
         if (account) setAccountDisplayName(account.name);
       } catch { /* account not found */ }
+
+      // Check if first time (no password set)
+      try {
+        const passwordSet = await db.settings.get('passwordSet:' + accountId);
+        if (!passwordSet) setIsFirstTime(true);
+      } catch { /* */ }
 
       try {
         const lockoutData = await db.settings.get('lockoutData:' + accountId);
@@ -110,13 +117,12 @@ const LockScreen = ({ accountId, onUnlock, onBack }) => {
 
         maxAttempts = Math.max(maxAttempts, localAttempts);
 
-        const now = Date.now();
-        if (existingEndTime > now) {
+        const currentTime = Date.now();
+        if (existingEndTime > currentTime) {
           setIsLockedOut(true);
           setLockoutEndTime(existingEndTime);
           setFailedAttempts(maxAttempts);
         } else if (maxAttempts >= 5) {
-          // Re-apply lockout based on cumulative attempts
           const duration = getLockoutDuration(maxAttempts);
           const newEndTime = Date.now() + duration;
           setIsLockedOut(true);
@@ -191,7 +197,6 @@ const LockScreen = ({ accountId, onUnlock, onBack }) => {
           return;
         }
 
-        // Check stored PBKDF2 version to use correct iteration count
         const iterVersion = await db.settings.get('pbkdf2Version:' + accountId).catch(() => null);
         const storedIterations = iterVersion?.value || 200000;
         const key = await deriveKey(password, saltArray, storedIterations);
@@ -209,12 +214,11 @@ const LockScreen = ({ accountId, onUnlock, onBack }) => {
           setPassword('');
           setIsUnlocking(true);
 
-          // Background PBKDF2 upgrade if needed
           if (storedIterations < PBKDF2_ITERATIONS) {
             upgradePbkdf2Iterations(accountId, password).catch(() => {});
           }
 
-          setTimeout(() => onUnlock(), 800);
+          setTimeout(() => onUnlock(), 500);
         } else {
           const newFailedAttempts = failedAttempts + 1;
           setFailedAttempts(newFailedAttempts);
@@ -240,6 +244,7 @@ const LockScreen = ({ accountId, onUnlock, onBack }) => {
           setPassword('');
         }
       } else {
+        // First-time password setup
         const salt = generateSalt();
         await db.settings.put({ key: 'salt:' + accountId, value: Array.from(salt) });
 
@@ -252,7 +257,7 @@ const LockScreen = ({ accountId, onUnlock, onBack }) => {
         setSessionKey(key, accountId);
         setPassword('');
         setIsUnlocking(true);
-        setTimeout(() => onUnlock(), 800);
+        setTimeout(() => onUnlock(), 500);
       }
     } catch {
       setError(t('lock.errors.unlockFailed'));
@@ -290,6 +295,7 @@ const LockScreen = ({ accountId, onUnlock, onBack }) => {
       setPassword('');
       setResetConfirmStep(0);
       setResetConfirmName('');
+      setIsFirstTime(true);
     } catch {
       setError(t('lock.errors.unlockFailed'));
     }
@@ -305,7 +311,7 @@ const LockScreen = ({ accountId, onUnlock, onBack }) => {
     <div className={`lock-screen ${isUnlocking ? 'unlocking' : ''}`}>
       <div className="lock-screen-container">
         <div className="lock-screen-top-bar">
-          <button className="lock-back-button" onClick={onBack}>
+          <button className="lock-back-button" onClick={onBack} aria-label="Back">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6" />
             </svg>
@@ -316,7 +322,18 @@ const LockScreen = ({ accountId, onUnlock, onBack }) => {
           </div>
         </div>
         <h1>{t('lock.title')}</h1>
-        <h2>{t('lock.subtitle')}</h2>
+        <h2>{isFirstTime ? t('lock.setPassword') : t('lock.subtitle')}</h2>
+
+        {isFirstTime && (
+          <div className="first-use-hint">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+            {t('lock.setPassword')}
+          </div>
+        )}
 
         <form onSubmit={handleUnlock} className="lock-screen-form">
           <div className="password-input-container">
@@ -329,7 +346,7 @@ const LockScreen = ({ accountId, onUnlock, onBack }) => {
               ref={passwordInputRef}
               placeholder={t('lock.passwordPlaceholder')}
               disabled={isLockedOut}
-              autoComplete="current-password"
+              autoComplete={isFirstTime ? 'new-password' : 'current-password'}
             />
           </div>
 
@@ -342,7 +359,7 @@ const LockScreen = ({ accountId, onUnlock, onBack }) => {
           )}
 
           <button type="submit" className="unlock-button" disabled={isLockedOut || tokenMissing}>
-            {t('lock.unlock')}
+            {isFirstTime ? t('lock.setPassword') : t('lock.unlock')}
           </button>
         </form>
 
