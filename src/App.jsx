@@ -87,6 +87,8 @@ function App() {
 
   const handleLogout = () => {
     clearSessionKey();
+    localStorage.removeItem(LAST_ACCOUNT_KEY);
+    setAccountId(null);
     setIsLocked(true);
   };
 

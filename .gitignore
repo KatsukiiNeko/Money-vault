@@ -86,6 +86,7 @@ Thumbs.db
 *.crt
 *.p12
 *.pfx
+.webui_secret_key
 
 # =========================
 # Backup / temp files
