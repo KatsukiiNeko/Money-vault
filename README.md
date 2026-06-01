@@ -217,33 +217,6 @@ npm run build
 npm run preview
 ```
 
----
-
-## 🎯 Roadmap
-
-- [x] Multi-account support
-- [x] Encrypted backup files
-- [x] Cross-device backup/restore
-- [x] PBKDF2 iteration upgrade (200K to 600K)
-- [x] Exponential lockout with dual persistence
-- [x] Triple-store backup restore lockout
-- [x] Escalating PBKDF2 cost + proof-of-work gate
-- [x] Account reset confirmation
-- [x] EN/VI bilingual support
-- [x] Dark/Light theme
-- [x] USD/VND currency
-- [x] Month navigation with data-aware highlighting
-- [x] Adaptive forecast data readiness thresholds
-- [x] User-correctable forecast predictions
-- [x] Past month simple mean forecasting
-- [x] CSV export
-- [ ] CSV import
-- [ ] Budget goals and alerts
-- [ ] Charts and spending analytics
-- [ ] Recurring transaction automation
-- [ ] Biometric unlock (WebAuthn)
-
----
 
 ## 🤝 Contributing
 
