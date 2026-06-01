@@ -2019,8 +2019,7 @@ button:active::before {
   color: var(--text-secondary);
   transition: border-color var(--duration-normal) var(--ease-smooth),
               color var(--duration-normal) var(--ease-smooth),
-              box-shadow var(--duration-normal) var(--ease-out-expo),
-              transform var(--duration-fast) var(--ease-out-back);
+              box-shadow var(--duration-normal) var(--ease-out-expo);
   min-height: 36px;
 }
 
@@ -2028,11 +2027,16 @@ button:active::before {
   border-color: var(--primary);
   color: var(--text-primary);
   box-shadow: 0 0 0 2px var(--primary-glow);
-  transform: scale(1.05);
 }
 
-.theme-toggle:active {
-  transform: scale(0.92);
+.theme-toggle-animating {
+  animation: themePop 350ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes themePop {
+  0% { transform: scale(1); }
+  40% { transform: scale(0.85); }
+  100% { transform: scale(1); }
 }
 
 .theme-toggle-label {

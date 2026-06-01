@@ -62,14 +62,9 @@ const Forecast = ({ currentBalance = 0 }) => {
     );
   }
 
-  const remainingDays = (() => {
-    const now = new Date();
-    const totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    return totalDays - now.getDate();
-  })();
-
   const pacePercent = forecastData.spendingPacePercent || 0;
   const isOverspending = forecastData.isOverspending;
+  const remainingDays = forecastData.remainingDays;
 
   return (
     <div className="forecast-container">
@@ -82,6 +77,7 @@ const Forecast = ({ currentBalance = 0 }) => {
         <div className="forecast-item">
           <span className="label">{t('forecast.projectedBalance')}</span>
           <span className="value">{forecastData.projectedBalance !== undefined ? formatCurrency(forecastData.projectedBalance) : t('forecast.noData')}</span>
+          {forecastData.needsMoreData && <span className="forecast-note">* {t('forecast.needsMoreData') || 'Based on limited data'}</span>}
         </div>
         <div className="forecast-item">
           <span className="label">{t('forecast.dailyAverage')}</span>

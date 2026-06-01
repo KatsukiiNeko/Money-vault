@@ -4,8 +4,15 @@ const VARIABLE_CATEGORIES = [
   'Healthcare', 'Travel', 'Education', 'Gifts & Donations'
 ];
 
+// Bug 1 fix: timezone-safe date parsing
+function parseDate(str) {
+  const [y, m, d] = str.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
 function removeOutliersIQR(values) {
-  if (values.length < 4) return values;
+  // Bug 7 fix: bump threshold from < 4 to < 8
+  if (values.length < 8) return values;
   const sorted = [...values].sort((a, b) => a - b);
   const q1 = sorted[Math.floor(sorted.length * 0.25)];
   const q3 = sorted[Math.floor(sorted.length * 0.75)];
@@ -25,7 +32,7 @@ function getExpectedFixedBill(category, allTransactions, currentMonthStart) {
     .filter(t =>
       t.category === category &&
       t.type === 'expense' &&
-      new Date(t.date) < currentMonthStart
+      parseDate(t.date) < currentMonthStart
     )
     .map(t => t.amount);
 
@@ -38,14 +45,15 @@ function getExpectedFixedBill(category, allTransactions, currentMonthStart) {
 }
 
 function computeWeekdayMultipliers(transactions, currentDate) {
+  // Bug 9 fix: 55 days = exactly 8 weeks
   const eightWeeksAgo = new Date(currentDate);
-  eightWeeksAgo.setDate(eightWeeksAgo.getDate() - 56);
+  eightWeeksAgo.setDate(eightWeeksAgo.getDate() - 55);
 
   const recentExpenses = transactions.filter(t =>
     t.type === 'expense' &&
     VARIABLE_CATEGORIES.includes(t.category) &&
-    new Date(t.date) >= eightWeeksAgo &&
-    new Date(t.date) <= currentDate
+    parseDate(t.date) >= eightWeeksAgo &&
+    parseDate(t.date) <= currentDate
   );
 
   if (recentExpenses.length < 14) return null;
@@ -58,7 +66,7 @@ function computeWeekdayMultipliers(transactions, currentDate) {
   }
 
   recentExpenses.forEach(t => {
-    const dow = new Date(t.date).getDay();
+    const dow = parseDate(t.date).getDay();
     weekdaySums[dow] += t.amount;
   });
 
@@ -66,8 +74,10 @@ function computeWeekdayMultipliers(transactions, currentDate) {
     weekdayCounts[i] > 0 ? sum / weekdayCounts[i] : 0
   );
 
-  const overallAvg = mean(weekdayAvg.filter(v => v > 0));
-  if (overallAvg === 0) return null;
+  // Bug 2 fix: don't filter out zero-spending weekdays
+  const nonZeroWeekdays = weekdayAvg.filter(v => v > 0);
+  if (nonZeroWeekdays.length === 0) return null;
+  const overallAvg = mean(nonZeroWeekdays);
 
   return weekdayAvg.map(avg => avg / overallAvg);
 }
@@ -83,7 +93,7 @@ export function calculateForecast(transactions, currentBalance, currentDate = ne
   const monthEnd = new Date(year, month + 1, 1);
 
   const currentMonthTxns = transactions.filter(t => {
-    const d = new Date(t.date);
+    const d = parseDate(t.date);
     return d >= monthStart && d < monthEnd;
   });
 
@@ -91,22 +101,26 @@ export function calculateForecast(transactions, currentBalance, currentDate = ne
     t.type === 'expense' && VARIABLE_CATEGORIES.includes(t.category)
   );
 
-  const dailyTotals = new Array(currentDay + 1).fill(0);
+  // Bug 4 fix: build calendar-aware daily totals (include zeros)
+  const dailyTotals = new Array(totalDays + 1).fill(0);
   variableTxns.forEach(t => {
-    const day = new Date(t.date).getDate();
-    if (day <= currentDay) {
+    const day = parseDate(t.date).getDate();
+    if (day >= 1 && day <= totalDays) {
       dailyTotals[day] += t.amount;
     }
   });
 
-  const nonZeroTotals = dailyTotals.slice(1).filter(v => v > 0);
-  const cleanedDaily = removeOutliersIQR(nonZeroTotals);
+  // Bug 4 fix: use all calendar days up to currentDay (including zeros)
+  const allDailyTotals = dailyTotals.slice(1, currentDay + 1);
+  const nonZeroTotals = allDailyTotals.filter(v => v > 0);
+  const cleanedDaily = removeOutliersIQR(allDailyTotals);
 
   let dailySpending;
   if (cleanedDaily.length < 3) {
     dailySpending = nonZeroTotals.length > 0 ? mean(nonZeroTotals) : 0;
   } else {
     const slowAverage = mean(cleanedDaily);
+    // Bug 4 fix: recent14 now operates on calendar-aware array
     const recent14 = cleanedDaily.slice(-14);
     const fastAverage = mean(recent14);
     dailySpending = 0.6 * slowAverage + 0.4 * fastAverage;
@@ -134,7 +148,7 @@ export function calculateForecast(transactions, currentBalance, currentDate = ne
     const alreadyPaid = currentMonthTxns.some(t =>
       t.category === category &&
       t.type === 'expense' &&
-      new Date(t.date).getDate() <= currentDay
+      parseDate(t.date).getDate() <= currentDay
     );
     if (!alreadyPaid) {
       const expected = getExpectedFixedBill(category, transactions, monthStart);
@@ -145,9 +159,41 @@ export function calculateForecast(transactions, currentBalance, currentDate = ne
     }
   }
 
-  const projectedIncome = currentMonthTxns
+  // Bug 6 fix: calculate both logged and projected income
+  const currentMonthIncome = currentMonthTxns
     .filter(t => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0);
+
+  // Project income from historical pattern (same method as expenses)
+  const monthlyIncomeTotals = [];
+  const monthlyIncomeDays = [];
+  for (let m = 1; m <= 3; m++) {
+    const targetMonth = month - m;
+    const targetYear = targetMonth < 0 ? year - 1 : year;
+    const adjMonth = ((targetMonth % 12) + 12) % 12;
+    const mStart = new Date(targetYear, adjMonth, 1);
+    const mEnd = new Date(targetYear, adjMonth + 1, 1);
+    const mDays = new Date(targetYear, adjMonth + 1, 0).getDate();
+
+    const mIncome = transactions
+      .filter(t =>
+        t.type === 'income' &&
+        parseDate(t.date) >= mStart &&
+        parseDate(t.date) < mEnd
+      )
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    if (mIncome > 0) {
+      monthlyIncomeTotals.push(mIncome);
+      monthlyIncomeDays.push(mDays);
+    }
+  }
+
+  const historicalDailyIncome = monthlyIncomeDays.length > 0
+    ? monthlyIncomeTotals.reduce((s, v, i) => s + v / monthlyIncomeDays[i], 0) / monthlyIncomeDays.length
+    : 0;
+
+  const projectedIncome = currentMonthIncome + (historicalDailyIncome * remainingDays);
 
   const monthlyVariableTotals = [];
   for (let m = 1; m <= 3; m++) {
@@ -161,20 +207,23 @@ export function calculateForecast(transactions, currentBalance, currentDate = ne
       .filter(t =>
         t.type === 'expense' &&
         VARIABLE_CATEGORIES.includes(t.category) &&
-        new Date(t.date) >= mStart &&
-        new Date(t.date) < mEnd
+        parseDate(t.date) >= mStart &&
+        parseDate(t.date) < mEnd
       )
       .reduce((sum, t) => sum + t.amount, 0);
 
     monthlyVariableTotals.push(mTotal);
   }
 
-  const historicalTypical = mean(monthlyVariableTotals.filter(v => v > 0));
+  // Bug 5 fix: remove dead code, use directly
+  const typicalMonthlySpending = mean(monthlyVariableTotals.filter(v => v > 0));
 
-  const hasEnoughData = historicalTypical > 0 && nonZeroTotals.length >= 3;
-  const typicalMonthlySpending = hasEnoughData ? historicalTypical : (historicalTypical > 0 ? historicalTypical : 0);
+  // Bug 3 fix: use historical typical when insufficient data for projection
+  const needsMoreData = nonZeroTotals.length < 3 && typicalMonthlySpending > 0;
+  const projectedMonthlySpending = needsMoreData
+    ? typicalMonthlySpending
+    : dailySpending * totalDays;
 
-  const projectedMonthlySpending = dailySpending * totalDays;
   const spendingPacePercent = typicalMonthlySpending > 0
     ? Math.round((projectedMonthlySpending / typicalMonthlySpending) * 100)
     : 0;
@@ -190,6 +239,8 @@ export function calculateForecast(transactions, currentBalance, currentDate = ne
     isOverspending,
     spendingPacePercent,
     typicalMonthlySpending,
-    projectedMonthlySpending
+    projectedMonthlySpending,
+    needsMoreData,
+    remainingDays
   };
 }

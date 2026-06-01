@@ -317,6 +317,10 @@ export const translations = {
     en: 'N/A — not enough history',
     vi: 'N/A — chưa đủ dữ liệu'
   },
+  'forecast.needsMoreData': {
+    en: 'Based on limited data',
+    vi: 'Dựa trên dữ liệu hạn chế'
+  },
 
   'password.toggleLabel': {
     en: 'Change Password',

@@ -3,40 +3,24 @@ import { useTheme } from '../context/ThemeContext';
 
 const ThemeToggle = () => {
   const { theme, setTheme } = useTheme();
-  const animating = useRef(false);
+  const btnRef = useRef(null);
 
   const handleToggle = () => {
-    if (animating.current) return;
-    animating.current = true;
+    const btn = btnRef.current;
+    if (!btn) return;
 
-    const nextTheme = theme === 'dark' ? 'light' : 'dark';
-    const bgColor = nextTheme === 'dark' ? '#0d0d0f' : '#f5f5f7';
-    const radius = Math.hypot(window.innerWidth, window.innerHeight) * 2;
-
-    const overlay = document.createElement('div');
-    overlay.style.cssText = `
-      position:fixed;top:0;left:0;width:${radius}px;height:${radius}px;
-      border-radius:50%;background:${bgColor};pointer-events:none;z-index:9999;
-      transform-origin:top left;transform:scale(0);
-      transition:transform 700ms cubic-bezier(0.22,1,0.36,1);
-    `;
-    document.body.appendChild(overlay);
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        overlay.style.transform = 'scale(1)';
-      });
-    });
-
+    btn.classList.add('theme-toggle-animating');
     setTimeout(() => {
-      setTheme(nextTheme);
-      overlay.remove();
-      animating.current = false;
-    }, 720);
+      setTheme(theme === 'dark' ? 'light' : 'dark');
+    }, 150);
+    setTimeout(() => {
+      btn.classList.remove('theme-toggle-animating');
+    }, 350);
   };
 
   return (
     <button
+      ref={btnRef}
       className="theme-toggle"
       onClick={handleToggle}
       title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
