@@ -74,10 +74,10 @@ function computeWeekdayMultipliers(transactions, currentDate) {
     weekdayCounts[i] > 0 ? sum / weekdayCounts[i] : 0
   );
 
-  // Bug 2 fix: don't filter out zero-spending weekdays
+  // Bug 2 fix: use all 7 weekdays in denominator, not just non-zero
   const nonZeroWeekdays = weekdayAvg.filter(v => v > 0);
   if (nonZeroWeekdays.length === 0) return null;
-  const overallAvg = mean(nonZeroWeekdays);
+  const overallAvg = mean(weekdayAvg);
 
   return weekdayAvg.map(avg => avg / overallAvg);
 }
