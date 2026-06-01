@@ -1521,7 +1521,7 @@ button:active::before {
 
 .forecast-content {
   display: grid;
-  gap: 0.625rem;
+  gap: 0.75rem;
 }
 
 .forecast-item {
@@ -1572,6 +1572,56 @@ button:active::before {
   color: var(--text-secondary);
   font-style: italic;
   font-weight: 400;
+}
+
+.forecast-note {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--text-tertiary);
+  font-style: italic;
+  margin-top: 0.25rem;
+}
+
+.forecast-editable {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  transition: color var(--duration-fast) var(--ease-smooth);
+}
+
+.forecast-editable:hover {
+  color: var(--primary);
+}
+
+.forecast-edit-icon {
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-smooth);
+  flex-shrink: 0;
+}
+
+.forecast-editable:hover .forecast-edit-icon {
+  opacity: 0.6;
+}
+
+.forecast-edit-value {
+  display: inline-flex;
+}
+
+.forecast-edit-input {
+  width: 120px;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--primary);
+  border-radius: 8px;
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-family: inherit;
+  text-align: right;
+  outline: none;
+  box-shadow: 0 0 0 2px var(--primary-glow);
 }
 
 
@@ -2086,6 +2136,17 @@ button:active::before {
   to {
     opacity: 1;
     transform: translateY(0) scaleY(1);
+  }
+}
+
+@keyframes dropdownEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -2799,6 +2860,364 @@ button:active::before {
 
 
 
+.month-picker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  margin-bottom: 1.25rem;
+  position: relative;
+  z-index: 100;
+  animation: staggerFadeIn var(--duration-page) var(--ease-spring) 0.08s both;
+}
+
+.month-picker-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: border-color var(--duration-normal) var(--ease-smooth),
+              color var(--duration-normal) var(--ease-smooth),
+              background var(--duration-normal) var(--ease-smooth),
+              transform var(--duration-fast) var(--ease-out-back),
+              box-shadow var(--duration-normal) var(--ease-out-expo);
+}
+
+.month-picker-arrow:hover:not(.disabled) {
+  border-color: var(--primary);
+  color: var(--text-primary);
+  background: var(--surface-elevated);
+  box-shadow: 0 0 0 2px var(--primary-glow);
+  transform: scale(1.08);
+}
+
+.month-picker-arrow:active:not(.disabled) {
+  transform: scale(0.92);
+}
+
+.month-picker-arrow.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.month-picker-label {
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  min-width: 160px;
+  text-align: center;
+  letter-spacing: -0.01em;
+  transition: border-color var(--duration-normal) var(--ease-smooth),
+              background var(--duration-normal) var(--ease-smooth),
+              box-shadow var(--duration-normal) var(--ease-out-expo),
+              transform var(--duration-fast) var(--ease-out-back);
+  font-family: inherit;
+}
+
+.month-picker-label:hover {
+  border-color: var(--primary);
+  background: var(--surface-elevated);
+  box-shadow: 0 0 0 2px var(--primary-glow);
+  transform: scale(1.02);
+}
+
+.month-picker-label:active {
+  transform: scale(0.97);
+}
+
+.month-picker-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow: var(--shadow-lg);
+  z-index: 50;
+  width: 280px;
+  animation: dropdownEnter var(--duration-normal) var(--ease-out-expo);
+}
+
+.month-picker-year-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.875rem;
+  padding: 0 0.25rem;
+}
+
+.year-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-elevated);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: border-color var(--duration-normal) var(--ease-smooth),
+              color var(--duration-normal) var(--ease-smooth),
+              background var(--duration-normal) var(--ease-smooth),
+              transform var(--duration-fast) var(--ease-out-back);
+}
+
+.year-nav-btn:hover:not(.disabled) {
+  border-color: var(--primary);
+  color: var(--text-primary);
+  background: var(--surface-hover);
+  transform: scale(1.1);
+}
+
+.year-nav-btn:active:not(.disabled) {
+  transform: scale(0.9);
+}
+
+.year-nav-btn.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.year-display {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.month-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.375rem;
+}
+
+.month-grid-btn {
+  padding: 0.5rem 0.25rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-smooth);
+  min-height: 36px;
+  font-family: inherit;
+}
+
+.month-grid-btn:hover:not(.disabled):not(.selected) {
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  border-color: var(--border);
+}
+
+.month-grid-btn.selected {
+  background: var(--primary);
+  color: white;
+  font-weight: 600;
+  border-color: var(--primary);
+  box-shadow: var(--shadow-glow);
+}
+
+.month-grid-btn.disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.month-grid-btn:active:not(.disabled) {
+  transform: scale(0.92);
+}
+
+.month-grid-btn.has-data {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.month-grid-btn.has-data::after {
+  content: '';
+  display: block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--primary);
+  margin: 2px auto 0;
+}
+
+.month-grid-btn.no-data {
+  color: var(--text-tertiary);
+  opacity: 0.5;
+}
+
+.month-toast {
+  position: fixed;
+  top: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  z-index: 200;
+  pointer-events: none;
+  animation: toastIn 0.3s var(--ease-out-expo) forwards,
+             toastOut 0.3s var(--ease-out-expo) forwards;
+  animation-delay: 0s, 2.5s;
+}
+
+.month-toast.future {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.month-toast.empty {
+  border-color: var(--warning);
+  color: var(--warning);
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-12px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+@keyframes toastOut {
+  from {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-8px) scale(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .month-toast {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+
+/* Skeleton loading states */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface-elevated) 0%,
+    var(--surface-hover) 40%,
+    var(--surface-elevated) 80%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+.skeleton-text {
+  height: 14px;
+  width: 100%;
+}
+
+.skeleton-text.short {
+  width: 60%;
+}
+
+.skeleton-text.medium {
+  width: 80%;
+}
+
+.skeleton-amount {
+  height: 18px;
+  width: 90px;
+  border-radius: 6px;
+}
+
+.skeleton-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.875rem 1rem;
+  background: var(--surface-elevated);
+  border-radius: 12px;
+  animation: staggerFadeIn var(--duration-page) var(--ease-spring) both;
+}
+
+.skeleton-row:nth-child(1) { animation-delay: 0.05s; }
+.skeleton-row:nth-child(2) { animation-delay: 0.1s; }
+.skeleton-row:nth-child(3) { animation-delay: 0.15s; }
+.skeleton-row:nth-child(4) { animation-delay: 0.2s; }
+.skeleton-row:nth-child(5) { animation-delay: 0.25s; }
+
+.skeleton-row-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.skeleton-forecast-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.875rem 1rem;
+  background: var(--surface-elevated);
+  border-radius: 12px;
+  animation: staggerFadeIn var(--duration-page) var(--ease-spring) both;
+}
+
+.skeleton-forecast-item:nth-child(1) { animation-delay: 0.05s; }
+.skeleton-forecast-item:nth-child(2) { animation-delay: 0.1s; }
+.skeleton-forecast-item:nth-child(3) { animation-delay: 0.15s; }
+.skeleton-forecast-item:nth-child(4) { animation-delay: 0.2s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    background: var(--surface-elevated);
+  }
+
+  .skeleton-row,
+  .skeleton-forecast-item {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+
 @media (max-width: 768px) {
   .dashboard {
     padding: 1rem;
@@ -2960,6 +3379,30 @@ button:active::before {
   .hero-balance-sub {
     gap: 1rem;
     flex-wrap: wrap;
+  }
+
+  .month-picker {
+    margin-bottom: 1rem;
+  }
+
+  .month-picker-label {
+    min-width: 140px;
+    font-size: 0.85rem;
+    padding: 0.4rem 0.75rem;
+  }
+
+  .month-picker-dropdown {
+    width: 260px;
+  }
+
+  .month-picker-grid {
+    gap: 0.25rem;
+  }
+
+  .month-grid-btn {
+    font-size: 0.72rem;
+    padding: 0.4rem 0.2rem;
+    min-height: 32px;
   }
 
     .settings-panel {

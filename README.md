@@ -25,7 +25,7 @@ All financial data is encrypted client-side with AES-GCM-256. Keys are derived f
 - 🔒 **End-to-end encryption** — AES-GCM-256, unique IV per transaction, authenticated encryption
 - 🗂️ **Multi-account support** — separate encrypted vaults per account
 - 💾 **Portable encrypted backups** — cross-device backup/restore with password-based encryption
-- 📊 **Adaptive forecasting** — EWMA + IQR outlier filtering + fixed-bill detection
+- 📊 **Adaptive forecasting** — EWMA (α=0.3) + IQR outlier filtering + fixed-bill detection + user-correctable predictions
 - 📱 **Installable PWA** — works offline like a native app
 - 🌙 **Dark/Light theme** — system-aware with manual toggle
 - 🛡️ **Zero network footprint** — `connect-src 'none'` CSP, no analytics, no telemetry
@@ -130,9 +130,13 @@ Three lightweight statistical tools work together in **O(n) time**:
 
 | Layer | Technique | Purpose |
 |-------|-----------|---------|
-| **Outlier Removal** | IQR (1.5x interquartile range) | Filters large one-off expenses |
-| **Spending Rate** | EWMA (alpha = 0.3) | Recency-biased moving average |
+| **Outlier Removal** | IQR (1.5x interquartile range) | Filters extreme one-off expenses before averaging (≥8 data points) |
+| **Spending Rate (current month)** | EWMA (α=0.3) | Recency-biased exponential moving average on daily totals |
+| **Spending Rate (past months)** | Simple mean | Average of daily spending for completed months |
 | **Fixed Bills** | Historical median | Projects unpaid recurring obligations |
+| **User Correction** | Ratio calibration | Click to correct predictions; stored ratio calibrates future forecasts |
+
+**Data readiness**: Current month uses EWMA (α=0.3) and requires logged days ≥ best prior month's logged days. Past months use simple average of actual spending and require ≥1 day with variable expenses. No predictions shown when data is insufficient.
 
 No ML. No external libraries. Just math that runs in microseconds.
 
@@ -167,6 +171,7 @@ src/
 │   ├── History.jsx            # Transaction history with delete
 │   ├── LanguageToggle.jsx     # Language toggle
 │   ├── LockScreen.jsx         # PIN entry with exponential lockout
+│   ├── MonthPicker.jsx        # Month/year navigation with data-aware highlighting
 │   ├── OnboardingOverlay.jsx  # First-use guidance
 │   ├── PasswordManager.jsx    # Change password with full re-encryption
 │   ├── SettingsPanel.jsx      # Settings drawer
@@ -183,7 +188,7 @@ src/
 ├── i18n/
 │   └── translations.js        # EN/VI translation strings
 ├── utils/
-│   ├── forecast.js            # EWMA + IQR forecasting engine
+│   ├── forecast.js            # EWMA + IQR forecasting engine with user correction
 │   └── lockout.js             # Triple-store anti-brute-force system
 ├── App.jsx                    # Root component with session timeout
 ├── index.css                  # Full application stylesheet
@@ -227,7 +232,12 @@ npm run preview
 - [x] EN/VI bilingual support
 - [x] Dark/Light theme
 - [x] USD/VND currency
-- [ ] CSV export/import
+- [x] Month navigation with data-aware highlighting
+- [x] Adaptive forecast data readiness thresholds
+- [x] User-correctable forecast predictions
+- [x] Past month simple mean forecasting
+- [x] CSV export
+- [ ] CSV import
 - [ ] Budget goals and alerts
 - [ ] Charts and spending analytics
 - [ ] Recurring transaction automation

@@ -317,6 +317,10 @@ export const translations = {
     en: 'N/A — not enough history',
     vi: 'N/A — chưa đủ dữ liệu'
   },
+  'forecast.noBaselineData': {
+    en: 'No baseline data',
+    vi: 'Không có dữ liệu tham chiếu'
+  },
   'forecast.needsMoreData': {
     en: 'Based on limited data',
     vi: 'Dựa trên dữ liệu hạn chế'
@@ -701,6 +705,14 @@ export const translations = {
     en: 'Currency',
     vi: 'Đơn vị tiền'
   },
+  'settings.exportCSV': {
+    en: 'Export CSV',
+    vi: 'Xuất CSV'
+  },
+  'settings.exportCSVLoading': {
+    en: 'Exporting...',
+    vi: 'Đang xuất...'
+  },
 
   'confirm.restore': {
     en: 'Restore Backup',
@@ -757,6 +769,20 @@ export const translations = {
   'forecast.fixedBillsPending': {
     en: 'Pending',
     vi: 'Chưa thanh toán'
+  },
+
+  'monthPicker.futureMessage': {
+    en: 'Are you from the future?',
+    vi: 'Bạn đến từ tương lai à?'
+  },
+  'monthPicker.noData': {
+    en: 'No transactions recorded this month',
+    vi: 'Tháng này chưa có giao dịch nào'
+  },
+
+  'forecast.clickToCorrect': {
+    en: 'Click to correct prediction',
+    vi: 'Nhấn để chỉnh sửa dự đoán'
   }
 };
 

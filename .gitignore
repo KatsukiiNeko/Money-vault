@@ -125,7 +125,9 @@ backup-*.json
 .copilot/
 .cursor/
 .openclaude/
-
+*.impeccable/
+CHANGELOG.md
+PRODUCT.md
 # =========================
 # Auth / credentials
 # =========================

@@ -333,6 +333,53 @@ export async function reEncryptTransactions(transactions, oldKey, newKey) {
   return reEncrypted;
 }
 
+export async function exportTransactionsCSV(accountId) {
+  const key = getSessionKey(accountId);
+  if (!key) throw new Error('Session expired');
+
+  const allEncrypted = await db.transactions.where('accountId').equals(accountId).toArray();
+  const account = await db.accounts.get(accountId);
+  const accountName = account ? account.name.replace(/[^a-zA-Z0-9]/g, '_') : 'unknown';
+
+  const rows = [['Date', 'Type', 'Category', 'Amount', 'Note']];
+  for (const enc of allEncrypted) {
+    try {
+      const tx = await decryptTransactionFromStorage(enc, key);
+      if (validateTransactionData(tx)) {
+        rows.push([
+          tx.date,
+          tx.type,
+          tx.category,
+          tx.amount.toString(),
+          tx.note || ''
+        ]);
+      }
+    } catch {}
+  }
+
+  if (rows.length <= 1) throw new Error('No transactions to export');
+
+  const csvContent = rows.map(row =>
+    row.map(cell => {
+      const escaped = cell.replace(/"/g, '""');
+      return /[",\n\r]/.test(cell) ? `"${escaped}"` : escaped;
+    }).join(',')
+  ).join('\r\n');
+
+  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  const dateStr = new Date().toISOString().split('T')[0];
+  link.download = `money-vault-${accountName}-${dateStr}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+
+  return rows.length - 1;
+}
+
 export default {
   deriveKey,
   encryptData,

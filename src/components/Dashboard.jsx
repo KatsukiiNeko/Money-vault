@@ -8,6 +8,7 @@ import SettingsPanel from './SettingsPanel';
 import OnboardingOverlay from './OnboardingOverlay';
 import ThemeToggle from './ThemeToggle';
 import LanguageToggle from './LanguageToggle';
+import MonthPicker from './MonthPicker';
 import { useCurrency } from '../context/CurrencyContext';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -21,7 +22,7 @@ const formatBalanceParts = (amount, formatCurrency) => {
 };
 
 const Dashboard = ({ onLogout, onSwitchAccount }) => {
-  const [balance, setBalance] = useState({ income: 0, expenses: 0, balance: 0 });
+  const [balance, setBalance] = useState({ income: 0, expenses: 0, totalBalance: 0 });
   const [refreshKey, setRefreshKey] = useState(0);
   const [accountName, setAccountName] = useState('');
   const [editingName, setEditingName] = useState(false);
@@ -30,6 +31,10 @@ const Dashboard = ({ onLogout, onSwitchAccount }) => {
   const [showOnboarding, setShowOnboarding] = useState(() => {
     try { return localStorage.getItem('money-vault-onboarded') !== '1'; } catch { return false; }
   });
+  const now = new Date();
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  const [monthData, setMonthData] = useState(new Set());
   const { formatCurrency } = useCurrency();
   const { t } = useLanguage();
 
@@ -54,29 +59,49 @@ const Dashboard = ({ onLogout, onSwitchAccount }) => {
         const allEncrypted = await db.transactions.where('accountId').equals(accountId).toArray();
         let totalIncome = 0;
         let totalExpenses = 0;
+        let allTimeIncome = 0;
+        let allTimeExpenses = 0;
+        const monthsWithData = new Set();
+
+        const monthStart = new Date(selectedYear, selectedMonth, 1);
+        const monthEnd = new Date(selectedYear, selectedMonth + 1, 1);
 
         for (const enc of allEncrypted) {
           try {
             const tx = await decryptTransactionFromStorage(enc, key);
             if (tx.type === 'income') {
-              totalIncome += tx.amount;
+              allTimeIncome += tx.amount;
             } else {
-              totalExpenses += tx.amount;
+              allTimeExpenses += tx.amount;
+            }
+            const dateStr = tx.date;
+            const monthKey = dateStr.slice(0, 7);
+            monthsWithData.add(monthKey);
+            const [y, m, d] = dateStr.split('-').map(Number);
+            const txDate = new Date(y, m - 1, d);
+            if (txDate >= monthStart && txDate < monthEnd) {
+              if (tx.type === 'income') {
+                totalIncome += tx.amount;
+              } else {
+                totalExpenses += tx.amount;
+              }
             }
           } catch {
           }
         }
 
+        setMonthData(monthsWithData);
+
         setBalance({
           income: totalIncome,
           expenses: totalExpenses,
-          balance: totalIncome - totalExpenses
+          totalBalance: allTimeIncome - allTimeExpenses
         });
       } catch { }
     };
 
     calculateBalance();
-  }, [refreshKey, accountId]);
+  }, [refreshKey, accountId, selectedMonth, selectedYear]);
 
   const handleRename = async () => {
     const trimmed = editValue.trim();
@@ -215,7 +240,7 @@ const Dashboard = ({ onLogout, onSwitchAccount }) => {
     return count;
   };
 
-  const heroParts = formatBalanceParts(balance.balance, formatCurrency);
+  const heroParts = formatBalanceParts(balance.totalBalance, formatCurrency);
   const incomeParts = formatBalanceParts(balance.income, formatCurrency);
   const expenseParts = formatBalanceParts(balance.expenses, formatCurrency);
 
@@ -276,6 +301,13 @@ const Dashboard = ({ onLogout, onSwitchAccount }) => {
         </div>
       </div>
 
+      <MonthPicker
+        selectedMonth={selectedMonth}
+        selectedYear={selectedYear}
+        onChange={(m, y) => { setSelectedMonth(m); setSelectedYear(y); }}
+        monthData={monthData}
+      />
+
       <div className="hero-balance">
         <div className="hero-balance-label">{t('dashboard.totalBalance')}</div>
         <div className="hero-balance-value">
@@ -315,8 +347,16 @@ const Dashboard = ({ onLogout, onSwitchAccount }) => {
           <TransactionForm onTransactionAdded={handleTransactionAdded} />
         </div>
         <div className="right-column">
-          <Forecast currentBalance={balance.balance} />
-          <History key={refreshKey} />
+          <Forecast
+            currentBalance={balance.totalBalance}
+            selectedMonth={selectedMonth}
+            selectedYear={selectedYear}
+          />
+          <History
+            key={refreshKey}
+            selectedMonth={selectedMonth}
+            selectedYear={selectedYear}
+          />
         </div>
       </div>
 

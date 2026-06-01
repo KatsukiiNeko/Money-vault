@@ -42,8 +42,8 @@ const CategoryIcon = ({ category }) => {
   );
 };
 
-const History = () => {
-  const [transactions, setTransactions] = useState([]);
+const History = ({ selectedMonth, selectedYear }) => {
+  const [allTransactions, setAllTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [deletingId, setDeletingId] = useState(null);
@@ -70,7 +70,7 @@ const History = () => {
           } catch {
           }
         }
-        setTransactions(decrypted);
+        setAllTransactions(decrypted);
         setLoading(false);
       } catch {
         setError(t('history.errors.loadFailed'));
@@ -81,10 +81,17 @@ const History = () => {
     fetchTransactions();
   }, [t]);
 
+  const transactions = allTransactions
+    .filter(tx => {
+      const [y, m] = tx.date.split('-').map(Number);
+      return m - 1 === selectedMonth && y === selectedYear;
+    })
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
+
   const handleDelete = async (id) => {
     try {
       await db.transactions.delete(id);
-      setTransactions(prev => prev.filter(tx => tx.id !== id));
+      setAllTransactions(prev => prev.filter(tx => tx.id !== id));
       setDeletingId(null);
     } catch {
       setError(t('history.errors.deleteFailed'));
@@ -102,7 +109,23 @@ const History = () => {
   };
 
   if (loading) {
-    return <div className="loading">{t('history.loading')}</div>;
+    return (
+      <div className="transaction-history">
+        <h2>{t('history.title')}</h2>
+        <div className="transactions-list">
+          {[1, 2, 3, 4, 5].map(i => (
+            <div key={i} className="skeleton-row">
+              <div className="skeleton skeleton-icon" />
+              <div className="skeleton-row-content">
+                <div className="skeleton skeleton-text medium" />
+                <div className="skeleton skeleton-text short" />
+              </div>
+              <div className="skeleton skeleton-amount" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   if (error) {
