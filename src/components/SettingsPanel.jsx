@@ -1,15 +1,12 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect } from 'react';
 import PasswordManager from './PasswordManager';
 import BackupRestore from './BackupRestore';
 import CurrencyToggle from './CurrencyToggle';
 import { useLanguage } from '../context/LanguageContext';
-import { exportTransactionsCSV, getActiveAccountId } from '../crypto/crypto';
 
 const SettingsPanel = ({ isOpen, onClose, onBackup, onSecureBackup, onRestore, onSecureRestore }) => {
   const { t } = useLanguage();
   const panelRef = useRef(null);
-  const [exporting, setExporting] = useState(false);
-  const [exportResult, setExportResult] = useState(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -19,18 +16,6 @@ const SettingsPanel = ({ isOpen, onClose, onBackup, onSecureBackup, onRestore, o
     }
     return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
-
-  const handleExportCSV = async () => {
-    setExporting(true);
-    setExportResult(null);
-    try {
-      const count = await exportTransactionsCSV(getActiveAccountId());
-      setExportResult(`${count} transactions exported`);
-    } catch (err) {
-      setExportResult(err.message);
-    }
-    setExporting(false);
-  };
 
   if (!isOpen) return null;
 
@@ -71,12 +56,6 @@ const SettingsPanel = ({ isOpen, onClose, onBackup, onSecureBackup, onRestore, o
               onRestore={onRestore}
               onSecureRestore={onSecureRestore}
             />
-          </div>
-          <div className="settings-item">
-            <button className="btn btn-secondary" onClick={handleExportCSV} disabled={exporting}>
-              {exporting ? t('settings.exportCSVLoading') : t('settings.exportCSV')}
-            </button>
-            {exportResult && <span className="backup-status">{exportResult}</span>}
           </div>
         </div>
       </div>

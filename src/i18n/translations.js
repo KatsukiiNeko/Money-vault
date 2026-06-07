@@ -705,14 +705,6 @@ export const translations = {
     en: 'Currency',
     vi: 'Đơn vị tiền'
   },
-  'settings.exportCSV': {
-    en: 'Export CSV',
-    vi: 'Xuất CSV'
-  },
-  'settings.exportCSVLoading': {
-    en: 'Exporting...',
-    vi: 'Đang xuất...'
-  },
 
   'confirm.restore': {
     en: 'Restore Backup',
