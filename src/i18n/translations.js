@@ -306,8 +306,8 @@ export const translations = {
     vi: 'Tốc độ chi tiêu:'
   },
   'forecast.typicalSpending': {
-    en: 'Typical Monthly:',
-    vi: 'Trung bình tháng:'
+    en: 'Typical Monthly Spending:',
+    vi: 'Trung bình chi tiêu tháng:'
   },
   'forecast.projectedSpending': {
     en: 'Projected This Month:',
