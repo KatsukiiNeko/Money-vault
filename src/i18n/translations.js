@@ -34,39 +34,39 @@ export const translations = {
   },
   'lock.errors.tooShort': {
     en: 'Password must be at least 4 characters',
-    vi: 'Mật khẩu phải có ít nhất 4 kí tự'
+    vi: 'Mật khẩu phải có ít nhất 4 ký tự'
   },
   'lock.errors.locked': {
     en: 'Account is temporarily locked. Please try again later.',
-    vi: 'Tài khoản tạm thời bị khóa, vui lòng thử lại sau'
+    vi: 'Tài khoản đã bị khóa tạm thời. Vui lòng thử lại sau.'
   },
   'lock.errors.corrupted': {
     en: 'Corrupted data. Please reset the app.',
-    vi: 'Dữ liệu bị lỗi, hãy khởi động lại ứng dụng'
+    vi: 'Dữ liệu bị lỗi. Vui lòng đặt lại ứng dụng.'
   },
   'lock.errors.invalid': {
     en: 'Invalid password',
-    vi: 'Sai mật khẩu'
+    vi: 'Mật khẩu không đúng'
   },
   'lock.errors.tooManyAttempts': {
     en: 'Too many failed attempts. Account temporarily locked.',
-    vi: 'Quá số lần sai mật khẩu. Tài khoản tạm thời bị khóa.'
+    vi: 'Thử sai quá nhiều lần. Tài khoản đã bị khóa tạm thời.'
   },
   'lock.errors.unlockFailed': {
     en: 'Failed to unlock. Please try again.',
-    vi: 'Không thể mở khóa, hãy thử lại sau'
+    vi: 'Mở khóa thất bại. Vui lòng thử lại.'
   },
   'lock.lockoutTimer': {
     en: 'Account locked. Try again in: {seconds}s',
-    vi: 'Tài khoản bị khóa, thử lại sau: {seconds}s'
+    vi: 'Tài khoản bị khóa. Thử lại sau: {seconds}s'
   },
   'lock.info.encrypted': {
     en: 'Your financial data is encrypted and stored locally on your device.',
-    vi: 'Dữ liệu đã được mã hóa và lưu trữ trên thiết bị của bạn'
+    vi: 'Dữ liệu của bạn được mã hóa và lưu cục bộ trên thiết bị.'
   },
   'lock.info.noServer': {
     en: 'No data is sent to any server.',
-    vi: 'Không dữ liệu nào được gửi đến máy chủ'
+    vi: 'Không gửi dữ liệu về máy chủ.'
   },
 
   'dashboard.title': {
@@ -79,23 +79,23 @@ export const translations = {
   },
   'dashboard.totalBalance': {
     en: 'Total Balance',
-    vi: 'Tổng số tiền'
+    vi: 'Tổng số dư'
   },
   'dashboard.income': {
     en: 'Income',
-    vi: 'Nguồn tiền vào'
+    vi: 'Thu nhập'
   },
   'dashboard.expenses': {
     en: 'Expenses',
-    vi: 'Nguồn tiền ra'
+    vi: 'Chi tiêu'
   },
   'dashboard.sessionExpired': {
     en: 'Session expired',
-    vi: 'Phiên đăng nhập đã hết hạn'
+    vi: 'Phiên làm việc đã hết hạn'
   },
   'dashboard.noFileSelected': {
     en: 'No file selected',
-    vi: 'Không có tệp nào được chọn'
+    vi: 'Chưa chọn tệp'
   },
   'dashboard.invalidBackupFormat': {
     en: 'Invalid backup file format',
@@ -148,7 +148,7 @@ export const translations = {
   },
   'form.notePlaceholder': {
     en: 'Optional note',
-    vi: 'Ghi chú (tùy chọn)'
+    vi: 'Ghi chú (không bắt buộc)'
   },
   'form.submit': {
     en: 'Add Transaction',
@@ -164,7 +164,7 @@ export const translations = {
   },
   'form.errors.sessionExpired': {
     en: 'Session expired. Please unlock again.',
-    vi: 'Phiên đăng nhập đã hết hạn. Vui lòng mở khóa lại.'
+    vi: 'Phiên hết hạn. Vui lòng mở khóa lại.'
   },
   'form.success.added': {
     en: 'Transaction added successfully!',
@@ -177,7 +177,7 @@ export const translations = {
 
   'cat.foodDining': {
     en: 'Food & Dining',
-    vi: 'Đồ ăn & Ăn uống'
+    vi: 'Ăn uống'
   },
   'cat.transportation': {
     en: 'Transportation',
@@ -197,7 +197,7 @@ export const translations = {
   },
   'cat.healthcare': {
     en: 'Healthcare',
-    vi: 'Sức khỏe'
+    vi: 'Sức khỏe & Y tế'
   },
   'cat.travel': {
     en: 'Travel',
@@ -234,11 +234,11 @@ export const translations = {
   },
   'history.empty': {
     en: 'No transactions found.',
-    vi: 'Không tìm thấy giao dịch nào.'
+    vi: 'Chưa có giao dịch nào.'
   },
   'history.errors.sessionExpired': {
     en: 'Session expired. Please unlock again.',
-    vi: 'Phiên đăng nhập đã hết hạn. Vui lòng mở khóa lại.'
+    vi: 'Phiên hết hạn. Vui lòng mở khóa lại.'
   },
   'history.errors.loadFailed': {
     en: 'Failed to load transactions',
@@ -259,7 +259,7 @@ export const translations = {
 
   'forecast.title': {
     en: 'Monthly Forecast',
-    vi: 'Dự báo theo tháng'
+    vi: 'Dự báo chi tiêu tháng'
   },
   'forecast.loading': {
     en: 'Loading forecast data...',
@@ -279,7 +279,7 @@ export const translations = {
   },
   'forecast.dailyAverage': {
     en: 'Daily Average Spending:',
-    vi: 'Chi tiêu trung bình mỗi ngày:'
+    vi: 'Trung bình chi tiêu/ngày:'
   },
   'forecast.daysRemaining': {
     en: 'Days Remaining:',
@@ -295,7 +295,7 @@ export const translations = {
   },
   'forecast.overspending': {
     en: 'Overspending',
-    vi: 'Chi tiêu quá mức'
+    vi: 'Vượt ngân sách'
   },
   'forecast.onTrack': {
     en: 'On Track',
@@ -311,11 +311,11 @@ export const translations = {
   },
   'forecast.projectedSpending': {
     en: 'Projected This Month:',
-    vi: 'Dự kiến tháng này:'
+    vi: 'Dự kiến chi tiêu tháng này:'
   },
   'forecast.noBaseline': {
     en: 'N/A — not enough history',
-    vi: 'N/A — chưa đủ dữ liệu'
+    vi: 'N/A — chưa đủ lịch sử'
   },
   'forecast.noBaselineData': {
     en: 'No baseline data',
@@ -352,7 +352,7 @@ export const translations = {
   },
   'password.confirmPlaceholder': {
     en: 'Confirm new password',
-    vi: 'Xác nhận mật khẩu mới'
+    vi: 'Nhập lại mật khẩu mới'
   },
   'password.update': {
     en: 'Update Password',
@@ -360,7 +360,7 @@ export const translations = {
   },
   'password.reEncrypting': {
     en: 'Re-encrypting...',
-    vi: 'Đang mã hóa lại...'
+    vi: 'Đang mã hóa lại dữ liệu...'
   },
   'password.errors.required': {
     en: 'All fields are required',
@@ -372,7 +372,7 @@ export const translations = {
   },
   'password.errors.tooShort': {
     en: 'New password must be at least 4 characters',
-    vi: 'Mật khẩu mới phải có ít nhất 4 kí tự'
+    vi: 'Mật khẩu mới phải có ít nhất 4 ký tự'
   },
   'password.errors.notSet': {
     en: 'No password has been set yet',
@@ -384,7 +384,7 @@ export const translations = {
   },
   'password.errors.decryptFailed': {
     en: 'Failed to decrypt some transactions. Aborting password change.',
-    vi: 'Không thể giải mã một số giao dịch. Hủy đổi mật khẩu.'
+    vi: 'Không thể giải mã dữ liệu. Đã hủy đổi mật khẩu.'
   },
   'password.success.changed': {
     en: 'Password changed successfully. All data re-encrypted.',
@@ -396,11 +396,11 @@ export const translations = {
   },
   'password.errors.cooldown': {
     en: 'Too many attempts. Wait {seconds}s before trying again.',
-    vi: 'Quá số lần thử. Đợi {seconds}s trước khi thử lại.'
+    vi: 'Thử sai quá nhiều lần. Vui lòng đợi {seconds}s rồi thử lại.'
   },
   'password.errors.tooManyAttempts': {
     en: 'Maximum attempts reached. Close and reopen the app to try again.',
-    vi: 'Đã đạt số lần thử tối đa. Đóng và mở lại ứng dụng để thử lại.'
+    vi: 'Đã đạt số lần thử tối đa. Vui lòng khởi động lại app để thử lại.'
   },
 
   'backup.title': {
@@ -429,7 +429,7 @@ export const translations = {
   },
   'backup.success': {
     en: 'Backup created successfully!',
-    vi: 'Tạo bản sao lưu thành công!'
+    vi: 'Sao lưu thành công!'
   },
   'backup.failedPrefix': {
     en: 'Backup failed: ',
@@ -437,7 +437,7 @@ export const translations = {
   },
   'backup.confirmRestore': {
     en: 'Restoring will replace all current data. Continue?',
-    vi: 'Khôi phục sẽ thay thế toàn bộ dữ liệu hiện tại. Tiếp tục?'
+    vi: 'Khôi phục sẽ ghi đè và thay thế toàn bộ dữ liệu hiện tại. Tiếp tục?'
   },
   'backup.restoreStarted': {
     en: 'Restore started...',
@@ -445,7 +445,7 @@ export const translations = {
   },
   'backup.restoreSuccess': {
     en: 'Restore completed! {count} transactions restored.',
-    vi: 'Khôi phục thành công! {count} giao dịch đã được khôi phục.'
+    vi: 'Khôi phục thành công! Đã khôi phục {count} giao dịch.'
   },
   'backup.failedRestorePrefix': {
     en: 'Restore failed: ',
@@ -501,27 +501,27 @@ export const translations = {
   },
   'backup.cooldown': {
     en: 'Too many attempts. Wait {seconds}s.',
-    vi: 'Quá số lần thử. Đợi {seconds}s.'
+    vi: 'Thử sai quá nhiều lần. Đợi {seconds}s.'
   },
   'backup.lockout.session_limit': {
     en: 'Maximum attempts reached. Close and reopen the app to try again.',
-    vi: 'Đã đạt số lần thử tối đa. Đóng và mở lại ứng dụng để thử lại.'
+    vi: 'Đã đạt số lần thử tối đa. Vui lòng khởi động lại app.'
   },
   'backup.lockout.time_lockout': {
     en: 'Too many failed attempts. Wait {seconds}s.',
-    vi: 'Quá số lần thử sai. Đợi {seconds}s.'
+    vi: 'Thử sai quá nhiều lần. Đợi {seconds}s.'
   },
   'backup.powProgress': {
     en: 'Computing verification... ({seconds}s elapsed)',
-    vi: 'Đang tính toán xác minh... ({seconds}s)'
+    vi: 'Đang xác minh... (Đã qua {seconds}s)'
   },
   'backup.powFailed': {
     en: 'Verification computation failed. Please try again.',
-    vi: 'Tính toán xác minh thất bại. Vui lòng thử lại.'
+    vi: 'Xác minh thất bại. Vui lòng thử lại.'
   },
   'backup.escalatedDeriving': {
     en: 'Deriving key (enhanced security)...',
-    vi: 'Đang tạo khóa (bảo mật nâng cao)...'
+    vi: 'Đang tạo khóa bảo mật...'
   },
   'backup.accountName': {
     en: 'Account',
@@ -538,7 +538,7 @@ export const translations = {
   },
   'accounts.selectPrompt': {
     en: 'Select an account',
-    vi: 'Chọn tài khoản'
+    vi: 'Chọn một tài khoản'
   },
   'accounts.create': {
     en: 'Create New Account',
@@ -586,7 +586,7 @@ export const translations = {
   },
   'accounts.errors.nameTooLong': {
     en: 'Account name must be 50 characters or less',
-    vi: 'Tên tài khoản phải từ 50 ký tự trở xuống'
+    vi: 'Tên tài khoản tối đa 50 ký tự'
   },
   'accounts.errors.createFailed': {
     en: 'Failed to create account',
@@ -598,7 +598,7 @@ export const translations = {
   },
   'accounts.errors.wrongPassword': {
     en: 'Incorrect password',
-    vi: 'Sai mật khẩu'
+    vi: 'Mật khẩu không đúng'
   },
   'accounts.cancel': {
     en: 'Cancel',
@@ -611,7 +611,7 @@ export const translations = {
 
   'lock.errors.tokenMissing': {
     en: 'Data corrupted. Account reset required.',
-    vi: 'Dữ liệu bị lỗi. Cần đặt lại tài khoản.'
+    vi: 'Dữ liệu lỗi. Cần đặt lại tài khoản.'
   },
   'lock.resetAccount': {
     en: 'Reset Account',
@@ -619,7 +619,7 @@ export const translations = {
   },
   'lock.resetConfirm': {
     en: 'This will permanently delete all data for this account. Continue?',
-    vi: 'Thao tác này sẽ xóa vĩnh viễn tất cả dữ liệu của tài khoản này. Tiếp tục?'
+    vi: 'Thao tác này sẽ xóa vĩnh viễn mọi dữ liệu của tài khoản này. Tiếp tục?'
   },
   'lock.resetConfirmType': {
     en: 'Type "{name}" to confirm permanent deletion:',
@@ -627,7 +627,7 @@ export const translations = {
   },
   'lock.resetNameMismatch': {
     en: 'Account name does not match. Type the exact name shown.',
-    vi: 'Tên tài khoản không khớp. Nhập chính xác tên hiển thị.'
+    vi: 'Tên tài khoản không khớp. Vui lòng nhập chính xác.'
   },
 
   'dashboard.switchAccount': {
@@ -637,7 +637,7 @@ export const translations = {
 
   'session.timeoutWarning': {
     en: 'Session expired due to inactivity',
-    vi: 'Phiên đã hết hạn do không hoạt động'
+    vi: 'Phiên làm việc hết hạn do không hoạt động'
   },
 
   'onboarding.welcome': {
@@ -646,7 +646,7 @@ export const translations = {
   },
   'onboarding.getStarted': {
     en: 'Let\'s get you set up',
-    vi: 'Hãy bắt đầu thiết lập'
+    vi: 'Bắt đầu thiết lập thôi'
   },
   'onboarding.step1Title': {
     en: 'Add Your First Transaction',
@@ -654,23 +654,23 @@ export const translations = {
   },
   'onboarding.step1Desc': {
     en: 'Track your income and expenses by adding transactions. Choose a category, enter the amount, and you\'re done.',
-    vi: 'Theo dõi thu nhập và chi tiêu bằng cách thêm giao dịch. Chọn danh mục, nhập số tiền, và hoàn tất.'
+    vi: 'Theo dõi thu nhập và chi tiêu bằng cách ghi lại giao dịch. Chọn danh mục, nhập số tiền là xong.'
   },
   'onboarding.step2Title': {
     en: 'Track Your Forecast',
-    vi: 'Theo dõi dự báo'
+    vi: 'Theo dõi dự báo dòng tiền'
   },
   'onboarding.step2Desc': {
     en: 'See where your money is going. The forecast shows your spending pace and projected balance for the month.',
-    vi: 'Xem tiền của bạn đi đâu. Dự báo cho thấy tốc độ chi tiêu và số dư dự kiến trong tháng.'
+    vi: 'Nắm rõ tiền của bạn đi đâu. Mục dự báo sẽ hiển thị tốc độ chi tiêu và số dư ước tính cuối tháng.'
   },
   'onboarding.step3Title': {
     en: 'Your Data is Secure',
-    vi: 'Dữ liệu được bảo mật'
+    vi: 'Dữ liệu được bảo mật tuyệt đối'
   },
   'onboarding.step3Desc': {
     en: 'All your data is encrypted and stored only on your device. Create backups in the Settings menu to keep your data safe.',
-    vi: 'Tất cả dữ liệu được mã hóa và chỉ lưu trên thiết bị. Tạo bản sao lưu trong menu Cài đặt để giữ an toàn.'
+    vi: 'Mọi dữ liệu đều được mã hóa và chỉ lưu trên thiết bị. Bạn có thể tạo bản sao lưu trong phần Cài đặt để tránh mất dữ liệu.'
   },
   'onboarding.skip': {
     en: 'Skip',
@@ -682,7 +682,7 @@ export const translations = {
   },
   'onboarding.done': {
     en: 'Get Started',
-    vi: 'Bắt đầu'
+    vi: 'Bắt đầu ngay'
   },
 
   'settings.title': {
@@ -703,7 +703,7 @@ export const translations = {
   },
   'settings.currency': {
     en: 'Currency',
-    vi: 'Đơn vị tiền'
+    vi: 'Đơn vị tiền tệ'
   },
 
   'confirm.restore': {
@@ -712,7 +712,7 @@ export const translations = {
   },
   'confirm.restoreMessage': {
     en: 'Restoring will replace all current data with the backup. This cannot be undone.',
-    vi: 'Khôi phục sẽ thay thế toàn bộ dữ liệu hiện tại. Thao tác này không thể hoàn tác.'
+    vi: 'Quá trình khôi phục sẽ ghi đè và thay thế toàn bộ dữ liệu hiện tại. Thao tác này không thể hoàn tác.'
   },
   'confirm.continue': {
     en: 'Continue',
@@ -725,11 +725,11 @@ export const translations = {
   },
   'empty.transactions.desc': {
     en: 'Add your first transaction above to start tracking your finances.',
-    vi: 'Thêm giao dịch đầu tiên ở trên để bắt đầu theo dõi tài chính.'
+    vi: 'Hãy thêm giao dịch đầu tiên ở trên để bắt đầu theo dõi tài chính.'
   },
   'empty.forecast.title': {
     en: 'Not enough data',
-    vi: 'Chưa đủ dữ liệu'
+    vi: 'Chưa đủ dữ liệu hiển thị'
   },
   'empty.forecast.desc': {
     en: 'Add some transactions to see your spending forecast.',
@@ -756,7 +756,7 @@ export const translations = {
 
   'forecast.fixedBills': {
     en: 'Expected Bills',
-    vi: 'Hóa đơn dự kiến'
+    vi: 'Hóa đơn định kỳ dự kiến'
   },
   'forecast.fixedBillsPending': {
     en: 'Pending',
@@ -769,12 +769,12 @@ export const translations = {
   },
   'monthPicker.noData': {
     en: 'No transactions recorded this month',
-    vi: 'Tháng này chưa có giao dịch nào'
+    vi: 'Tháng này không có giao dịch nào'
   },
 
   'forecast.clickToCorrect': {
     en: 'Click to correct prediction',
-    vi: 'Nhấn để chỉnh sửa dự đoán'
+    vi: 'Nhấp để điều chỉnh dự đoán'
   }
 };
 
