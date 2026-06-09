@@ -775,6 +775,27 @@ export const translations = {
   'forecast.clickToCorrect': {
     en: 'Click to correct prediction',
     vi: 'Nhấp để điều chỉnh dự đoán'
+  },
+
+  'banner.tag': {
+    en: 'NOTICE',
+    vi: 'THÔNG BÁO'
+  },
+  'banner.title': {
+    en: 'This project is shutting down',
+    vi: 'Dự án này sẽ đóng cửa'
+  },
+  'banner.message': {
+    en: 'Money Vault will be discontinued as we transition into Basalt Finance. We apologize for any inconvenience and hope you enjoy the new experience.',
+    vi: 'Money Vault sẽ ngừng hoạt động khi chúng tôi chuyển sang Basalt Finance. Chúng tôi xin lỗi vì sự bất tiện này và hy vọng bạn sẽ trải nghiệm tuyệt vời trên nền tảng mới.'
+  },
+  'banner.cta': {
+    en: 'Go to Basalt Finance',
+    vi: 'Đến Basalt Finance'
+  },
+  'banner.dismiss': {
+    en: 'Dismiss',
+    vi: 'Đóng'
   }
 };
 

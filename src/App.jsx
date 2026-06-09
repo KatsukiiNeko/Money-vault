@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import AccountSelector from './components/AccountSelector';
 import LockScreen from './components/LockScreen';
 import Dashboard from './components/Dashboard';
+import ShutdownBanner from './components/ShutdownBanner';
 import { clearSessionKey } from './crypto/crypto';
 import { useLanguage } from './context/LanguageContext';
 import { db } from './db/db';
@@ -85,6 +86,7 @@ function App() {
   if (isLoading) {
     return (
       <div className="app">
+        <ShutdownBanner />
         <div className="lock-screen">
           <div className="lock-screen-container">
             <div className="spinner" style={{ margin: '2rem auto' }}>
@@ -101,6 +103,7 @@ function App() {
   if (!accountId) {
     return (
       <div className="app">
+        <ShutdownBanner />
         <AccountSelector onAccountSelected={handleAccountSelected} />
         <footer className="footer">
           <span>&copy; {t('app.copyright')}</span>
@@ -112,6 +115,7 @@ function App() {
   if (isLocked) {
     return (
       <div className="app">
+        <ShutdownBanner />
         <LockScreen accountId={accountId} onUnlock={handleUnlock} onBack={handleSwitchAccount} />
         <footer className="footer">
           <span>&copy; {t('app.copyright')}</span>
@@ -122,6 +126,7 @@ function App() {
 
   return (
     <div className="app">
+      <ShutdownBanner />
       <Dashboard onLogout={handleLogout} onSwitchAccount={handleSwitchAccount} />
       <footer className="footer">
         <span>&copy; {t('app.copyright')}</span>
